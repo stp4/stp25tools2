@@ -1,0 +1,51 @@
+Package: stp25tools2
+Type: Package
+Title: Tools for data wrangling and statistical transformations
+Version: 0.1.1
+Date: 2025-01-09
+Authors@R: person("Wolfgang", "Peter", email = "w.peter@statistik-peter.at",  role = c("aut", "cre"))
+Description: Collection of convenient functions for common data manipulation.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.3
+Depends: R (>= 4.1.0)
+Suggests: 
+  rmarkdown,
+  stats,
+  utils,
+  lazyeval,
+  testthat,cowplot,
+  coin,
+  rms
+Imports:
+  knitr,plyr, 
+  dplyr,
+  tibble,
+  tidyr,
+  rlang, 
+  purrr,
+  tidyselect,
+  broom,
+  Formula,
+  stringr,
+  stringi,
+  yaml,
+  haven,  
+  readxl,
+  effects,
+  parameters,
+  insight,
+  performance,
+  ggplot2, 
+  ggstats,
+  tidytext,
+  Hmisc,  
+  lattice,  
+  ComplexUpset,
+  car,
+  RColorBrewer,
+  gridExtra,
+  latticeExtra
+Config/testthat/edition: 3
+VignetteBuilder: knitr

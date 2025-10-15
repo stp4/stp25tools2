@@ -1,0 +1,110 @@
+default:
+  output: ""
+  fig_folder: "Fig/"
+  html_folder: "Results/"
+  center: TRUE
+  sep_element: ", "
+  brackets: ["[", "]"]
+  test_fun: ["contest", "wilcox", "utest", "htest", "kruskal", "ttest", "aov", "anova", "cattest", "chisq", "fisher", "ordtest", "binomial", "notest", "shapiro", "kstest"]
+  test_fun_contest: ["contest","wilcox","utest","htest","kruskal","ttest","aov","anova"]
+  test_fun_cattest: ["cattest", "chisq", "fisher", "ordtest", "binomial"]
+  test_fun_notest: ["notest"]
+  test_fun_ordtest: ["ordtest"]
+  test_fun_disttest: ["shapiro", "kstest"]
+  test_fun_cortest: ["pearson", "kendall", "spearman"]
+
+  table:
+    stubhead: "Item"
+    measure.name.m: "m"
+    measure.name.sd: "sd"
+    measure.name.total: "Total"
+    measure.name.statistics: "Statistics"
+    caption.nr.prefix: NULL
+    include.n: FALSE
+    include.tabel.number: TRUE
+
+  percent:
+    digits: 0
+    lead.zero: TRUE
+    style: 1
+    percentage_str: "%"
+    null_percent_sign: "."
+    include_name: ""
+    include_level_multi: TRUE
+    useNA: "no"
+
+  mean:
+    digits: 2
+    lead.zero: TRUE
+    plusmin_str: " ± "
+    style: 1
+    seperator: ", "
+    include_name: "(mean)"
+
+  median:
+    digits: 2
+    lead.zero: TRUE
+    seperator: ", "
+    style: "IQR"
+    include_name: "(median)"
+
+  Fstat:
+    digits: 2
+    lead.zero: TRUE
+    include.statistic: TRUE
+    small.sampel: TRUE
+
+  r:
+    digits: 2
+    lead.zero: FALSE
+
+  r2:
+    digits: 2
+    lead.zero: FALSE
+
+  p:
+    digits: 3
+    lead.zero: FALSE
+    stars.value: [0.001, 0.01, 0.05]
+    stars.symbols: ["***", "**", "*"]
+    with.stars: FALSE
+    mark.sig: NULL
+
+  measure:
+    numeric: "mean"
+    integer: "mean"
+    factor:  "percent"
+    logical: "percent"
+    mean:    "mean"
+    median:  "median"
+    multi:   "percent"
+    ratio:   "percent"
+    freq:    "percent"
+    character: "emty"
+
+
+  measure_fun:
+    numeric: "mean_tbll"
+    integer: "mean_tbll"
+    factor:  "prct_tbll"
+    logical: "multi_tbll"
+    mean:    "mean_tbll"
+    median:  "median_tbll"
+    multi:   "multi_tbll"
+    ratio:   "prct_tbll"
+    header:  "emty_tbll"
+    freq:    "prct_tbll"
+    character: "emty_tbll"
+
+  test:
+    numeric: "conTest"
+    integer: "conTest"
+    factor:  "catTest"
+    logical: "catTest"
+    mean:    "conTest"
+    median:  "conTest"
+    multi:   "catTest"
+    ratio:   "catTest"
+    header:  "notest"
+    freq:    "catTest"
+
