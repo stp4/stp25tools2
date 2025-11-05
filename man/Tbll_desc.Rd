@@ -204,3 +204,7 @@ Tbll_desc(
 
 
 }
+\seealso{
+\code{\link{prepare_data}}, \code{\link{Tbll_desc_grouped}}, \code{\link{Tbll_test}},
+ \code{\link[Hmisc]{spearman2}}
+}

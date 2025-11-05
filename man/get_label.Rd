@@ -4,7 +4,7 @@
 \alias{get_label}
 \title{Get variable labels}
 \usage{
-get_label(data)
+get_label(data, ...)
 }
 \arguments{
 \item{data}{A data frame}

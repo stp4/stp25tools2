@@ -1,0 +1,173 @@
+---
+title: "Effect Displays with Tbll_effect"
+author: "Wolfgang Peter"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Effect Displays with Tbll_effect}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+  
+  
+```{r,setup, include=FALSE}
+#
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+
+# libs
+library(stp25tools2)
+library(effects)
+library(ggplot2)
+library(cowplot)
+library(car)  # Für plotting Funktionen
+
+```
+
+
+Diese Vignette demonstriert die Verwendung der `Tbll_effect` Funktion für
+verschiedene Regressionsmodelle, einschließlich Transformationen und
+spezieller Effekt-Darstellungen.
+
+  
+```{r data, include=FALSE}
+DF <- data.frame(
+  y = c(12, 15, 23, 44, 11, 44, 49, 27, 25, 8,
+        11, 10, 28, 15, 34, 20, 31, 55, 15, 34,
+        47, 11, 27, 9, 12, 15, 7, 15, 42, 14,
+        19, 24, 20, 10, 38, 28, 36, 9, 31),
+  iq = c(91, 95, 103, 116, 88, 116, 118, 106, 105, 82,
+         88, 87, 107, 95, 111, 100, 109, 120, 95, 111,
+         117, 88, 106, 85, 91, 95, 81, 95, 115, 94,
+         99, 104, 100, 87, 113, 107, 112, 84, 109)
+)
+DF$log.y <- log(DF$y)
+
+```
+ 
+
+
+## Modelle erstellen
+  
+```{r models}
+fit.linear <- lm(y ~ iq, DF)
+fit.log.y <- lm(log.y ~ iq, DF)
+fit.model.log <- lm(log(y) ~ iq, DF)
+```
+
+
+
+## Grundlegende Effekt-Darstellungen
+
+### Lineares Modell
+
+  
+```{r basic-effects}
+Tbll_effect(fit.linear, "iq", include.ci = FALSE)
+```
+### Modell mit log-transformierter abhängiger Variable
+
+  
+```{r}
+Tbll_effect(fit.log.y, "iq", include.ci = FALSE)
+```
+### Modell mit log(y) in der Formel
+```{r}
+Tbll_effect(fit.model.log, "iq", include.ci = FALSE)
+```
+
+
+## Transformationen anwenden
+
+
+  
+```{r}
+Tbll_effect(fit.log.y, "iq", include.ci = FALSE,
+            transformation = list(link = log, inverse = exp))
+
+Tbll_effect(fit.model.log, "iq", include.ci = FALSE,
+            xlevels = list(iq = c(90, 100, 110)),
+            transformation = list(link = log, inverse = exp))
+```
+
+
+
+## Vergleich mit effects::effect()
+
+Direkter Aufruf von `effects::effect()`
+
+  
+```{r}
+effects::effect("iq", fit.model.log,
+                xlevels = list(iq = c(90, 100, 110)),
+                transformation = list(link = log, inverse = exp))
+```
+
+
+## Grafische Darstellungen
+  
+```{r plot-grid, fig.cap="Vergleich verschiedener Modell-Darstellungen"}
+
+p1 <- plot(effect("iq", fit.linear, partial.residuals = TRUE),
+           main = "y (linear)")
+
+p2 <- plot(effect("iq", fit.log.y, partial.residuals = TRUE),
+           main = "log.y Modell")
+
+p3 <- plot(effect("iq", fit.log.y, partial.residuals = TRUE,
+                  transformation = list(link = log, inverse = exp)),
+           main = "log.y + Transformation")
+
+p4 <- plot(effect("iq", fit.model.log, partial.residuals = TRUE),
+           main = "log(y) Modell")
+
+p5 <- plot(effect("iq", fit.model.log, partial.residuals = TRUE,
+                  transformation = list(link = log, inverse = exp)),
+           main = "log(y) + Transformation")
+
+plot_grid(p1, p4, p5, NULL, p2, p3, ncol = 3)
+```
+
+
+## Interpretation der Ergebnisse
+
+### Lineares Modell (p1)
+- Direkte lineare Beziehung zwischen IQ und y
+- Partielle Residuen zeigen die Streuung um die Regressionslinie
+
+### Log-Transformierte Modelle (p2-p5)
+- p2/p4: Effekte auf der log-Skala
+- p3/p5: Zurücktransformierte Effekte auf der originalen Skala
+- Die Transformation macht nicht-lineare Beziehungen sichtbar
+
+### Tbll_effect vs. effects::effect()
+- `Tbll_effect` bietet formatierte Ausgaben mit Konfidenzintervallen
+- Integriert Fallzahlen und Standardfehler
+- Ermöglicht flexible Term-Spezifikationen via Formeln
+
+
+## Erweiterte Beispiele
+
+
+```{r}
+# Mit Fallzahlen und Konfidenzintervallen.
+Tbll_effect(fit.linear, "iq", include.n = TRUE, include.ci = TRUE, digits = 2)
+
+# Multiple Term-Spezifikation via Formula.
+Tbll_effect(fit.linear, ~ iq, include.ci = TRUE)
+```
+
+
+## Praxis-Tipps
+
+1. **Transformationen**: Verwenden Sie `transformation` für nicht-lineare Modelle
+2. **xlevels**: Spezifizieren Sie konkrete Werte für Prädiktoren mit `xlevels`
+3. **Formeln**: Nutzen Sie Formel-Syntax für komplexe Term-Spezifikationen
+4. **Fallzahlen**: `include.n = TRUE` zeigt die Anzahl der Beobachtungen pro Level
+5. **Digits**: Passen Sie die Rundung mit `digits` an
+

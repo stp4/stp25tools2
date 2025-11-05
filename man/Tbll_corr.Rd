@@ -119,7 +119,8 @@ Tbll_corr(~ a + b + c, dat,
 
 }
 \seealso{
-\code{\link[Hmisc]{rcorr}}, \code{\link[stats]{cor}}, \code{\link[stats]{cor.test}}
+\code{\link[Hmisc]{rcorr}}, \code{\link[stats]{cor}}, \code{\link[stats]{cor.test}},
+\code{\link{prepare_data}}, \code{\link{Tbll_desc}}, \code{\link{Tbll_test}}
 }
 \author{
 Improved with assistance from Claude Sonnet 4 (claude-sonnet-4-20250514)

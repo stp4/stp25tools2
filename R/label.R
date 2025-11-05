@@ -95,11 +95,15 @@ set_label <- function(data, label = NULL) {
 #' @return A named vector of labels
 #' @export
 #'
-get_label <- function(data) {
-  lbl <- lapply(data, attr, "label")
-  unlabelled <- which(vapply(lbl, is.null, logical(1)))
-  lbl[unlabelled] <- names(data)[unlabelled]
-  unlist(lbl)
+get_label <- function(data, ...) {
+    dots <- rlang::enquos(...)
+    if(length(dots) > 0) data <- dplyr::select(data, ...)
+    lbl <- lapply(data, attr, "label")
+    unlabelled <- which(vapply(lbl, is.null, logical(1)))
+    lbl[unlabelled] <- names(data)[unlabelled]
+    unlist(lbl)
+    
+  
 }
 
 #' @rdname Label

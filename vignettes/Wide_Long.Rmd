@@ -1,0 +1,243 @@
+---
+title: "Data Reshaping with Wide() and Long()"
+author: "Wolfgang Peter"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Wide_Long}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+
+```{r setup-lib, include = FALSE}
+library(stp25tools2)
+
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+ 
+
+
+# Vignette für Wide() und Long(): Flexible Datenumformung
+
+Diese Vignette demonstriert die Verwendung der `Wide()` und `Long()` Funktionen
+für komfortables Umformen von Daten zwischen Wide- und Long-Format.
+
+## Beispieldaten erstellen
+
+```{r data, include = FALSE}
+df <- data.frame(
+  month = rep(month.abb[1:3], 2),
+  student = rep(c("Amy", "Bob"), each = 3),
+  A = c(9, 7, 6, 8, 6, 9),
+  B = c(6, 7, 8, 5, 6, 7),
+  C = c(1, 3, 6, 3, 4, 7)
+)
+print(df)
+```
+
+
+## Long(): Von Wide zu Long Format
+
+### Grundlegende Verwendung mit Variablennamen
+
+```{r long-basic}
+# Format - Basis:
+long_basic <- Long(df, A, B, C, by = ~month + student)
+long_basic
+
+# Mit Formel-Syntax
+long_formula <- Long(A + B + C ~ month + student, df)
+head(long_formula)
+
+# Mit Spaltenpositionen
+# geht noch nicht
+# long_positions <- Long(df, 3:5, by = ~month + student)
+# long_positions)
+
+```
+
+
+### Benutzerdefinierte Spaltennamen
+
+```{r long-custom}
+long_custom <- Long(df, A, B, C, 
+                    by = ~month + student,
+                    key = "subject", 
+                    value = "score")
+# Long Format - Custom Names:
+head(long_custom)
+```
+
+## Wide(): Von Long zu Wide Format
+
+Zuerst erstellen wir Long-Format Daten für die Demonstration
+
+```{r create-long}
+# Long Format für Wide-Transformation
+df_long <- Long(df, A, B, C, by = ~month + student)
+ # df_long <- df |>
+ #  pivot_longer(cols = c(A, B, C), 
+ #               names_to = "variable", 
+ #               values_to = "value")
+head(df_long)
+
+# Grundlegende Verwendung mit Variablennamen
+# Wide Format - Basis
+wide_basic <- Wide(df_long, student, value)
+wide_basic
+
+# Mit Formel-Syntax
+wide_formula <- Wide(df_long, month ~ student, value)
+ # pivot_wider( 
+ #     names_from = "variable", 
+ #     values_from = "value")
+wide_formula
+
+```
+
+
+## Round-Trip Transformation
+
+```{r roundtrip}
+# Wide -> Long -> Wide
+roundtrip <- df |>
+  Long(A, B, C, by = ~month + student) |>
+  Wide(month ~ student, value)
+
+print("Round-Trip Transformation: hier haben wir eine Liste da die month in der Formel fehlen")
+print(roundtrip)
+```
+
+
+
+## Praxisbeispiel: Notenanalyse
+
+```{r practical-example}
+# Daten vorbereiten
+grades <- df |>
+  Long(A, B, C, by = ~month + student, 
+       key = "subject", value = "grade")
+
+print("Notendaten im Long-Format:")
+print(grades)
+```
+### Deskriptive Statistiken
+
+```{r stats}
+grade_stats <- grades |>
+  group_by(subject, student) |>
+  summarise(
+     grade_mean = round(mean(grade, na.rm = TRUE),1),
+     grade_sd = round(sd(grade, na.rm = TRUE),1),
+    .groups = "drop"
+  )
+
+print("Deskriptive Statistiken:")
+print(grade_stats)
+
+
+df |> Summarise(
+  A + B + C ~  student,
+  fun=\(g){
+   c(mean = mean(g, na.rm = TRUE),
+    sd = sd(g, na.rm = TRUE))
+  },
+  key = "subject"
+  
+)
+
+
+```
+
+
+### Visualisierung
+
+```{r visualization, fig.cap="Notenentwicklung nach Fach und Student"}
+ggplot(grades, aes(x = month, y = grade, color = student, group = student)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3) +
+  facet_wrap(~subject, ncol = 3) +
+  labs(title = "Notenentwicklung nach Fach und Student",
+       x = "Monat", y = "Note", color = "Student") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1")
+
+### Zurück zu Wide-Format für Berichte
+```
+
+
+```{r report-format}
+report_data <- grades |>
+  Wide(month ~ student + subject, grade)
+
+print("Daten für Bericht:")
+print(report_data)
+```
+
+
+## Vergleich mit tidyr::pivot_ Funktionen
+
+
+```{r comparison}
+# Mit tidyr
+ df |>
+  pivot_longer(cols = c(A, B, C), 
+               names_to = "variable", 
+               values_to = "value") |> head()
+
+# Mit Long()
+  Long(df, A, B, C, by = ~month + student) |> head()
+
+ 
+```
+
+
+## Vorteile von Wide() und Long()
+
+1. **Flexible Syntax**: Sowohl Formeln als auch Variablennamen
+2. **Intuitive Benennung**: Klarere Funktionsnamen
+3. **Erweiterte Features**: Automatische Label-Verwendung
+4. **Konsistente API**: Einheitliche Parameter-Namen
+5. **Bessere Integration**: Nahtlose Zusammenarbeit mit dplyr
+
+## Best Practices
+
+### Für Long():
+- Verwenden Sie `by` für ID-Variablen
+- Nutzen Sie Formeln für komplexe Spezifikationen
+- Setzen Sie `use.label = TRUE` für bessere Beschriftungen
+
+### Für Wide():
+- Verwenden Sie Formeln für klare Key-Wert Zuordnungen
+- Nutzen Sie `values_fill` für fehlende Werte
+- Verwenden Sie `names_sep` für kontrollierte Spaltennamen
+
+
+## Zusammenfassung
+
+Die `Wide()` und `Long()` Funktionen bieten:
+
+- **Einfachere Syntax** als die Basis tidyr Funktionen
+- **Flexible Eingabeoptionen** (Formeln, Namen, Positionen)
+- **Zusätzliche Features** wie automatische Labels
+- **Bessere Integration** in dplyr Pipelines
+- **Konsistente Fehlerbehandlung**
+
+```{r session-info
+#sessionInfo()

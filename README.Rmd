@@ -1,0 +1,159 @@
+---
+title: "stp25tools2"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+
+Tools for data wrangling and statistical transformations
+
+```{r}
+library(stp25tools2)
+#devtools::install("stp4/stp25tools2")
+```
+
+
+## Datenimport und -Transformation
+
+Dieses Gruppe bietet erweiterte Funktionen für den Import, das Umformen und Kombinieren von Datensätzen.
+Es dient als flexible Sammlung von Tools, die häufige Datentransformationen in der Analyse vereinfachen.
+
+Enthalten sind unter anderem:
+
+ - get_data() – Ein flexibler Datenimporter (CSV, XLSX, SAV oder Text)
+
+ - Long() – Ein intelligenter Wrapper für pivot_longer() mit Formelsyntax
+
+ - Wide() – Ein intuitiver Wrapper für pivot_wider() mit Formelsyntax
+
+ - Combine() – Eine komfortable Join-Funktion zum Zusammenführen mehrerer Data Frames
+
+
+
+
+## Funktionen
+
+### get_data()
+
+Importiert Datensätze aus verschiedenen Formaten (.xlsx, .csv, .sav) oder direkt aus Text.
+
+
+```{r}
+dat <- get_data("
+sex treatment control
+m  2 3
+f  3 4
+",
+tabel_expand = TRUE,
+id.vars = 1)
+
+xtabs(~ sex + value, dat)
+```
+
+
+
+
+| Format  | Funktion aus Paket     | Beispielparameter          |
+| :------ | :--------------------- | :------------------------- |
+| `.xlsx` | `readxl::read_excel()` | `sheet`, `skip`, `range`   |
+| `.csv`  | `read.table()`         | `sep`, `dec`, `na.strings` |
+| `.sav`  | `haven::read_sav()`    | `encoding`, `user_na`      |
+| Text    | `read.text2()`         | `dec`                      |
+
+
+
+### Long() und Wide()
+
+Erweitert tidyr::pivot_longer() um:
+
+  - Formelsyntax (A + B ~ month)
+
+  - Label-Unterstützung
+
+  - Einfache Angabe von ID-Variablen
+
+
+```{r}
+
+df <- data.frame(
+  month = rep(month.abb[1:3], 2),
+  student = rep(c("Amy", "Bob"), each = 3),
+  A = c(9, 7, 6, 8, 6, 9),
+  B = c(6, 7, 8, 5, 6, 7),
+  C = c(1, 3, 6, 3, 4, 7)
+)
+
+# Variable Namen
+Long(df, A, B, by = ~month)
+
+# Formelsyntax
+# Long(A + B ~ month, df, key = "student", value = "grade")
+
+
+```
+
+ 
+
+```{r}
+Wide(df, month ~ student, A, B, C)
+```
+
+
+
+
+
+### Combine()
+
+Kombiniert mehrere Data Frames mithilfe einer frei wählbaren Join-Funktion.
+Standardmäßig wird dplyr::full_join verwendet.
+
+```{r}
+n <- 10
+df1 <- data.frame(id = 1:n, x = rnorm(n))
+df2 <- data.frame(id = 1:n, y = runif(n))
+df3 <- data.frame(id = 1:n, z = rpois(n, 2))
+
+# Full Join (Standard)
+Combine(df1, df2, df3, by = "id")
+
+# Left Join
+Combine(df1, df2, df3, by = "id", merge_fun = dplyr::left_join)
+```
+
+
+
+
+
+### Beispiel-Workflow
+```{r}
+# 1. Daten importieren
+dat <- get_data("
+sex treatment  neg  pos
+f   KG          3   3
+f   UG          4   5
+m   KG          5   4
+m   UG          4   2
+", tabel_expand = TRUE, id.vars = 1:2, value = "befund")
+
+#dat$id<-  seq_along(dat)
+#dat
+# # 2. Daten umformen
+# dat_long <- Long(dat, neg, pos, by = ~sex + treatment)
+# 
+# # 3. Daten kombinieren
+# df_extra <- data.frame(sex = c("f", "m"), group = c("A", "B"))
+# final <- Combine(dat_long, df_extra, by = "sex")
+# 
+# # 4. Ergebnisse prüfen
+# head(final)
+```
+
+

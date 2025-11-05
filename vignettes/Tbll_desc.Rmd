@@ -1,0 +1,172 @@
+---
+title: "Deskriptive Statistiken mit Tbll_desc"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Deskriptive Statistiken mit Tbll_desc}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r setup, include = FALSE}
+library(stp25tools2)
+```
+
+
+## Einführung
+
+Die Funktion `Tbll_desc()` ermöglicht die flexible Erstellung von Tabellen für deskriptive Statistiken.
+Sie unterstützt u. a.:
+
+  + Gruppierungsvariablen
+  + mehrere Maße (Mittelwert, Median, Häufigkeiten, benutzerdefinierte Funktionen)
+  + Ausgabe mit und ohne Totalsummen
+  + Einbindung zusätzlicher Werte (z. B. Effektstärken, Odds Ratios)
+  + optionale Tests (Wilcoxon, t-Test, ANOVA etc.)
+
+## Beispiel-Datensatz
+
+Wir generieren einen Beispiel-Datensatz mit Patientenvariablen und weisen Label zu:
+
+
+```{r, include = FALSE}
+set.seed(1)
+n <- 100
+DF <- data.frame(
+  sex = gl(2, n/2, labels = c("male", "female")),
+  group = gl(2, n/2, labels = c("Control", "Treat"))[sample.int(n)],
+  age = runif(n, min = 18, max = 73),
+  bmi = runif(n, min = 18, max = 30),
+  glucose = runif(n, min = 60, max = 110),
+  harnstoff = runif(n, min = 2, max = 8),
+  crp = c(rep(TRUE, 10), rep(FALSE, n-10))[sample.int(n)]
+) |> Label(
+  sex=  "Geschlecht",
+  group = "Behandlung",
+  age=  "Alter",
+  bmi =  "BMI",
+  glucose=  "Glucose",
+  harnstoff = "Harnstoff",
+  crp = "CRP <10mg/l"
+)
+
+```
+
+## Basisoptionen einstellen
+```{r}
+set_opt(
+  mean = list(style=4, plusmin_str=" ± "),
+  median = list(digits=0, style=1),
+  percent = list(style=2, null_percent_sign=" . ")
+)
+```
+
+
+
+Erstes Beispiel: Tabelle mit Gruppenvergleich
+
+```{r}
+rslt1 <- DF |>
+  Tbll_desc(
+    sex,
+    group,
+    age[median,0],
+    bmi[median,2],
+    "Labor",
+    glucose[0],
+    harnstoff[2],
+    by = ~group,
+    include.total = TRUE
+  )
+```
+
+
+
+Erweiterte Optionen: Eigene Kennzahlen
+
+Man kann eigene Maße einfügen, z. B. eine Funktion, die n, Mittelwert und Standardabweichung berechnet:
+
+
+```{r}
+n_mean_sd <- function(x, n, digits, ...) {
+  data.frame(
+    lev = c("   n", "   mean", "   sd"),
+    n = c(as.character(n), "", ""),
+    m = c(
+      length(x),
+      render_f(mean(x, na.rm = TRUE), digits),
+      render_f(sd(x, na.rm = TRUE), digits)
+    )
+  )
+}
+
+set_opt(
+  measure_fun = list(fun="n_mean_sd"),
+  measure = list(fun="factor")
+)
+```
+
+
+Und damit:
+```{r}
+DF |>
+  Tbll_desc(
+    sex,
+    age[median,0],
+    bmi[median,2],
+    "Labor",
+    glucose[0],
+    harnstoff[fun],
+    crp[multi],
+    by = ~group
+  )
+```
+
+
+
+Zusätzliche Werte einbinden
+
+Es lassen sich auch Effektstärken oder Odds Ratios einfügen:
+
+
+```{r}
+Tbll_desc(
+  warpbreaks,
+  "H1",
+  breaks,
+  tension,
+  by = ~ wool,
+  include.value = data.frame(
+    ES = 1:2,
+    OR = 3:4,
+    row.names = c("breaks", "tension")
+  )
+)
+```
+
+Statistische Tests einschließen
+
+```{r}
+Tbll_desc(
+  warpbreaks,
+  "H1",
+  breaks,
+  tension,
+  by = ~ wool,
+  include.total = TRUE,
+  include.n = FALSE,
+  include.test = TRUE
+)
+```
+
+## Fazit
+
+Mit `Tbll_desc()`` lassen sich flexible und reproduzierbare Tabellen für beschreibende Statistiken erstellen.
+Dank der Kombination aus Standardmaßen, Gruppenvergleichen und eigenen Funktionen ist es möglich, die Tabellen an unterschiedliche Forschungsfragen anzupassen.

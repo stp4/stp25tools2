@@ -206,11 +206,11 @@ set_opt <- function(...) {
   }
 
   if (any(names(new) == "fig_folder")) {
-    new$fig_folder <- paste0(clnsng(new$fig_folder), .Platform$file.sep)
+    new$fig_folder <- paste0((new$fig_folder), .Platform$file.sep)
   }
 
   if (any(names(new) == "html_folder")) {
-    new$html_folder <- paste0(clnsng(new$html_folder), .Platform$file.sep)
+    new$html_folder <- paste0((new$html_folder), .Platform$file.sep)
   }
 
   stp25.options(new)
