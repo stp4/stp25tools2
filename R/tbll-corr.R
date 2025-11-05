@@ -89,7 +89,8 @@
 #'          type = "spearman")
 #'
 #' @seealso
-#' \code{\link[Hmisc]{rcorr}}, \code{\link[stats]{cor}}, \code{\link[stats]{cor.test}}
+#' \code{\link[Hmisc]{rcorr}}, \code{\link[stats]{cor}}, \code{\link[stats]{cor.test}},
+#' \code{\link{prepare_data}}, \code{\link{Tbll_desc}}, \code{\link{Tbll_test}}
 #'
 #' @export
 Tbll_corr <-

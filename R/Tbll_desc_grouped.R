@@ -12,14 +12,14 @@
 #' Es kann also entweder die lange oder kompakte Schreibweise verwendet werden:
 #'
 #' ```
-#' Tbll_desc2(
+#' Tbll_desc_grouped(
 #'   h0, bmi, smoker, fev1.pr,
 #'   by = ~ sex,
 #'   groups = ~ time
 #' )
 #'
 #' # oder äquivalent:
-#' Tbll_desc2(
+#' Tbll_desc_grouped(
 #'   h0 + bmi + smoker + fev1.pr ~ sex | time
 #' )
 #' ```
@@ -59,15 +59,79 @@
 #' @param use.level Gibt an, welche Ebene bei Faktoren berücksichtigt wird.
 #' @param use.duplicated Logisch; steuert, ob doppelte Variablen berücksichtigt
 #'
+#' Die Argumente \code{by} und \code{groups} definieren:
+#' \itemize{
+#'   \item \code{by}: Gruppierungsvariable, gegen die getestet wird (z. B. \code{sex})
+#'   \item \code{groups}: Stratifizierungsvariable, nach der die Analysen getrennt werden (z. B. \code{time})
+#' }
+#'
+#'  
+#' @note
+#' Diese Funktion berechnet univariate Signifikanztests für mehrere Variablen,
+#' typischerweise getrennt nach Gruppen und Strata. Die resultierenden p-Werte
+#' sind nicht multipeltest-korrigiert und dürfen nicht als Beleg für tatsächliche
+#' Unterschiede interpretiert werden.
+#'
+#' Die Ergebnisse sind daher **rein explorativ** zu verstehen.
+#' Die Berechnung erfolgt lediglich, weil solche Tests häufig gefordert werden –
+#' sie sind jedoch **statistisch nicht empfehlenswert**.
+#'
+#' Es existiert kein Korrekturverfahren, das die grundlegende Fehlinterpretation
+#' der univariaten p-Werte „repariert“. Das Problem liegt nicht in der
+#' fehlenden Adjustierung, sondern in der falschen Schlussfolgerung:
+#' ein kleiner p-Wert bedeutet nicht automatisch, dass ein relevanter Unterschied
+#' oder ein kausaler Zusammenhang besteht.
+#'
+#' Zur kritischen Diskussion der Problematik vgl. u.a.:
+#' - Wasserstein, R. L., & Lazar, N. A. (2016). *The ASA Statement on p-Values: Context, Process, and Purpose.*  
+#'   The American Statistician, 70(2), 129–133. <doi:10.1080/00031305.2016.1154108>
+#'
+#' **Kurz gesagt:** p-Werte können Hinweise auf Unterschiede geben, aber keine
+#' verlässliche Evidenz für Relevanz oder Wahrheit liefern. Ihre unreflektierte
+#' Nutzung in multiplen univariaten Analysen führt leicht zu Fehlinterpretationen.
+
+#' @return
+#' Gibt ein \code{tibble} mit deskriptiven Statistiken und ggf. Signifikanztests zurück.
+#' Typischerweise enthält die Ausgabe folgende Spalten:
+#' \describe{
+#'   \item{Items}{Variablenname oder Label}
+#'   \item{Groups}{Name der Vergleichsgruppe}
+#'   \item{Strata-Spalten}{Eine Spalte pro Level der Stratifizierung (z. B. \code{Ph1}, \code{Ph2}, \code{Ph3})}
+#' }
+#'
+#' @seealso
+#' \code{\link{prepare_data}}, \code{\link{Tbll_desc}}, \code{\link{Tbll_test}}
+#'
+#'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' # Beispiel 1: getrennte Argumente
+#' set.seed(42)
+#' DF_long <- tibble::tibble(
+#'   id      = 1:100,
+#'   sex     = factor(sample(c("male", "female"), 100, TRUE)),
+#'   time    = factor(sample(c("Ph1", "Ph2", "Ph3"), 100, TRUE)),
+#'   bmi     = round(rnorm(100, 25, 4), 1),
+#'   smoker  = factor(sample(c("Never", "Former", "Current"), 100, TRUE)),
+#'   fev1.pr = round(rnorm(100, 100, 15), 1),
+#' )
+#' 
+#' # Beispiel
+#' 
+#' DF_long |>
+#'   Tbll_desc_grouped(
+#'     bmi[1],
+#'     smoker,
+#'     fev1.pr,
+#'     by = ~ sex,
+#'     groups = ~ time,
+#'     include.test = TRUE
+#'   )
+#' }
 #'
-#' 1+1
-#'
-#'
-#'
-Tbll_desc2<- function(...,
+Tbll_desc_grouped <- function(...,
                          include.label = TRUE,
                          include.total = FALSE,
                          include.test = FALSE,
@@ -111,7 +175,8 @@ if(is.null(X$condition.vars))
     use.level = use.level,
     X$digits,
     include.total = include.total,
-    include.label = include.label
+    include.label = include.label,
+    include.test =include.test
   )
 
 }
@@ -139,6 +204,7 @@ multiple_test_tbl <- function(data,
                               digits,
                               include.total,
                               include.label,
+                              include.test,
                               name = "Items") {
   data <- data[c(vars, groups, condition)]
 
@@ -166,7 +232,8 @@ multiple_test_tbl <- function(data,
           measure[i],
           measure.test[i],
           use.level,
-          digits[i]
+          digits[i],
+          include.test =include.test
         )
       )
     }
@@ -385,7 +452,7 @@ base_setting <- function(X, use.duplicated, include.measure) {
 #
 #
 # DF_long |> #filter( sptgroups %in% levels(sptgroups)[1:2] ) |>
-#   Tbll_desc2(
+#   Tbll_desc_grouped(
 #     h0,
 #     bmi,
 #     #age,

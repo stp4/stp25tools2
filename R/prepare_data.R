@@ -104,6 +104,16 @@ prepare_data.formula  <- function(x,
                                   na.action = NULL,
                                   drop.unused.levels = FALSE,
                                   is_for_plot = FALSE) {
+  
+  formula_str <- deparse(x)
+  if (grepl('\\|', formula_str)) {
+    parts <- strsplit(formula_str, "\\|")[[1]]
+    # Erste Formula erstellen
+    x <- as.formula(parts[1])
+    # Zweite Formula für Gruppen erstellen
+    groups <- as.formula(paste("~", parts[2]))
+  }
+  
   x <- expand_dot_formula(x, names(data))
   measure_vars <- LHS(x)
 

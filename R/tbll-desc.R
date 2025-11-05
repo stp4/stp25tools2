@@ -36,6 +36,12 @@
 #' Custom measures can be specified using the syntax `var[fun]` where `fun` is
 #' a function that takes a vector and returns a formatted result.
 #'
+#' @seealso
+#' \code{\link{prepare_data}}, \code{\link{Tbll_desc_grouped}}, \code{\link{Tbll_test}},
+#'  \code{\link[Hmisc]{spearman2}}
+#'  
+
+#'
 #' @export
 #' @examples
 #' ## ----include = FALSE----------------------------------------------------------
