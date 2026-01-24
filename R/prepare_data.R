@@ -105,7 +105,8 @@ prepare_data.formula  <- function(x,
                                   drop.unused.levels = FALSE,
                                   is_for_plot = FALSE) {
   
-  formula_str <- deparse(x)
+  formula_str <- deparse1(x)
+  
   if (grepl('\\|', formula_str)) {
     parts <- strsplit(formula_str, "\\|")[[1]]
     # Erste Formula erstellen
@@ -152,6 +153,26 @@ prepare_data.data.frame  <- function(data,
                                      drop.unused.levels = FALSE,
                                      is_for_plot = FALSE) {
   dots <- rlang::enquos(...)
+  
+  if (length(dots) == 0) {
+    if (is.null(by))
+      formula <- ~ .
+    else
+      formula <- update(by, . ~ .)
+    
+    return(
+      prepare_data.formula(
+        formula,
+        data,
+        groups = groups,
+        na.action = na.action,
+        drop.unused.levels = drop.unused.levels
+      )
+    )
+  }
+
+  
+  
   first_expr <-  rlang::quo_squash(dots[[1]])
 
   if (rlang::is_call(first_expr, "~")) {
@@ -160,7 +181,6 @@ prepare_data.data.frame  <- function(data,
       prepare_data.formula(
         formula,
         data,
-        ...,
         groups = groups,
         na.action = na.action,
         drop.unused.levels = drop.unused.levels
@@ -168,22 +188,26 @@ prepare_data.data.frame  <- function(data,
     )
   }
 
-  measure_vars <- character(length(dots))
+  
+  # Schleife durch die dot-dot-dot
+  measure_vars <- c() 
   sub_heading <- c()
-
   for (i in seq_along(dots)) {
     expr <- rlang::quo_get_expr(dots[[i]])
-    if (!is.character(expr))
-      measure_vars[i] <- rlang::as_label(rlang::quo_squash(expr))
+    if (!is.character(expr)) {
+      measure_i <-  rlang::as_label(rlang::quo_squash(expr))
+      if (grepl("\\:",measure_i))
+        measure_vars <- c(measure_vars, eval_select_names(measure_i, names(data)))
+      else
+        measure_vars <- c(measure_vars, measure_i)
+    }
     else {
       sub_heading <- append(sub_heading, rlang::quo_squash(expr))
-      measure_vars[i] <- paste0("h__", length(sub_heading), "__h")
+      measure_vars <- c(measure_vars, paste0("h__", length(sub_heading), "__h"))
     }
   }
 
   measure_vars <- convert_numeric(measure_vars, names(data))
-
-
 
   if(!is_for_plot)
     make_my_list(data, measure_vars, sub_heading, by, groups,
@@ -542,6 +566,33 @@ convert_numeric  <- function(measure, var_names) {
   # Flatten and remove duplicates
   result
 }
+
+#' Kann f1:f4 in c(cf1, f2, f3, f4) aufloesen
+#'
+#' @return Character vector of variable names
+#'
+#' @keywords internal
+#' @noRd
+eval_select_names <- function(expr, names) {
+  vars <- strsplit(expr, "\\:")[[1]]
+  if (grepl("\\[", vars[2])) {
+    vars2 <- strsplit(vars[2], "\\[")[[1]]
+    vars[2] <- vars2[1]
+    pos <- which(names %in% vars)
+    if (length(pos) != 2) {
+      stop("Die Variablen ", expr, " sind nicht vorhanden!")
+    }
+    paste0(names[seq(pos[1], pos[2])], "[", vars2[2])
+  }
+  else{
+    pos <- which(names %in% vars)
+    if (length(pos) != 2) {
+      stop("Die Variablen ", expr, " sind nicht vorhanden!")
+    }
+    names[seq(pos[1], pos[2])]
+  }
+}
+
 
 
 #' @rdname prepare_data

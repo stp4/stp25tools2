@@ -92,38 +92,44 @@ Summarise <- function(...,
                       include.label = TRUE,
                       names_vary = "slowest") {
 
-  # Hilfsfunktion: Aggregate mit Standardparametern
-  run_aggregate <- function(f, data) {
-    aggregate(f, data, FUN = fun, na.action = na.action)
-  }
-
   # Hilfsfunktion: Letzte Spalte auftrennen, falls Matrix
-  split_matrix_column <- function(df) {
-    last_col <- df[[ncol(df)]]
+  split_matrix_column <- function(dframe) {
+    last_col <- dframe[[ncol(dframe)]]
     if (is.matrix(last_col)) {
-      cbind(df[-ncol(df)], last_col)
+      cbind(dframe[-ncol(dframe)], last_col)
     } else {
-      names(df)[ncol(df)] <<- value
-      df
+      names(dframe)[ncol(dframe)] <- value
+      dframe
     }
+  }
+  
+  unlist_column <- function(dframe) {
+    if (is.list(dframe[[ncol(dframe)]]))
+      dframe |>
+      dplyr::mutate(dplyr::across(tidyselect::all_of(names(dframe)), .fns = unlist))
+    else
+      dframe
   }
 
   # Long-Format erzeugen
   long_data <- Long(..., key = key, value = value, use.label = include.label)
 
   # Standardformel erstellen
-  default_formula <- formula(
-    paste(value, "~", paste(names(long_data)[-ncol(long_data)], collapse = "+"))
-  )
+ default_formula <- 
+   formula(
+   paste(value, "~", 
+         paste(names(long_data)[-ncol(long_data)], 
+               collapse = "+")))
 
   # Hauptaggregation
-  summary_data <- run_aggregate(default_formula, long_data)
+  # das muss so sein wegen na.action
+  summary_data <- aggregate(default_formula, long_data, FUN = fun, na.action = na.action)
   summary_data <- split_matrix_column(summary_data)
   summary_data <- summary_data[order(summary_data[[1]]), ]
 
   # Margins (Total-Zeilen) hinzufugen
   if (isTRUE(margins) || inherits(margins, "formula")) {
-
+    
     if (!inherits(margins, "formula")) {
       margins <- if (ncol(long_data) == 2) {
         formula(paste(value, "~1"))
@@ -132,9 +138,8 @@ Summarise <- function(...,
       }
     }
 
-    margins_data <- run_aggregate(margins, long_data)
+    margins_data <- aggregate(margins, long_data, FUN = fun, na.action = na.action)
     margins_data <- split_matrix_column(margins_data)
-
 
     # Position & Namen fur Total
     pos_total <- seq_len(nrow(margins_data)) + nrow(summary_data)
@@ -153,7 +158,7 @@ Summarise <- function(...,
 
   # Wide-Format falls Formel vorhanden
   if (!is.null(formula)) {
-    #lhs <- LHS(formula)
+    # lhs <- LHS(formula)
     rhs <- RHS(formula)
 
     if (length(setdiff(all.vars(formula), names(summary_data))) > 0) {
@@ -163,13 +168,7 @@ Summarise <- function(...,
            ), collapse = ", "))
     }
 
-    values_from <-
-      setdiff(names(summary_data), all.vars(formula))
-
-    print(list( names_from =  (rhs),
-                values_from =   (values_from),
-
-                names_vary = names_vary ))
+    values_from <- setdiff(names(summary_data), all.vars(formula))
 
     summary_data <- tidyr::pivot_wider(summary_data,
                                        names_from = tidyselect::all_of(rhs),
@@ -182,7 +181,7 @@ Summarise <- function(...,
     names(summary_data)[is.na(names(summary_data))] <- "NA"
   }
 
-  summary_data
+  unlist_column(summary_data)
 }
 
 
@@ -530,47 +529,4 @@ data_to_mean  <- function(...,
 }
 
 
-
-#' Praevalenz
-#'
-#' Clopper Pearson method for confidence intervals
-#'
-#' @param x logical
-#' @param by not used
-#' @param ... not used
-#' @export
-#'
-#' @return vector
-#'
-#' @examples
-#'
-#' DF<- data.frame(
-#'   sex = gl(2, 50, labels = c("male", "female")),
-#'   Adipositas = rbinom(n=100, 1, prob=.2),
-#'   Bewegungsmangel =rbinom(n=100, 1, prob=.4),
-#'   Nikotinabusus = rbinom(n=100, 1, prob=.3)
-#' )
-#'
-#' DF |> Summarise(
-#'   Adipositas,
-#'   Bewegungsmangel,
-#'   Nikotinabusus,
-#'   #  by=~sex,
-#'   key = "Risikofaktor",
-#'   fun = Praevalenz,
-#'   # formula= Risikofaktor ~ sex
-#' )
-#'
-Praevalenz <- function(x, by, ...) {
-  x <- na.omit(x)
-  n <- length(x)
-  a <- sum(x)
-  rst <- stats::binom.test(a, n)
-  Percent <- render_f(rst$estimate * 100, 0)
-  CI.95 <-  paste( render_f(rst$conf.int * 100, digits = 1),collapse =", " )
-  c('Anteil' = paste0(a, "/", n),
-    'Praevalenz % [95%-CI]' = paste0(Percent,"% [", CI.95, "]"))
-}
-
-
-
+ 
