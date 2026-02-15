@@ -83,7 +83,29 @@
 #'   get_data("inst/extdata/dummy.sav")
 #' }
 #' }
-get_data <- function(
+get_data <- function(...) {
+  UseMethod("get_data")
+}
+
+#' @rdname get_data
+#' @export
+get_data.data.frame  <- function(data, ...){
+  
+  if(!is.null( attr(data, "tbll_likert") )) {
+    cat("\n Hier kommt ein data_long. \n")
+    data_l <- attr(attr(data, "tbll_likert"), "data_long")
+    if (!is.null(data_l) ) return( data_l)
+  }
+  
+  
+  data
+  
+}
+
+
+#' @rdname get_data
+#' @export
+get_data.default <- function(
     file = NA_character_,
     na.strings = NULL,
     dec = ".",
@@ -199,19 +221,26 @@ get_data <- function(
 
   read_sav <- function() {
     data <-
-      haven::read_sav(file, encoding = encoding, user_na = user_na)
-    data <- haven::as_factor(data)
+      haven::read_sav(file, 
+                      encoding = encoding, 
+                      user_na = user_na)
+    save_labels <- get_label(data)
 
-    if (cleanup.names) {
-      fix_names(data)
-    } else  {
-      data
-    }
+    # as_factor verschmeisst die Labels
+    data <- haven::as_factor(data)
+    if (cleanup.names)
+      data <- fix_names(data)
+ 
+   data <-   stp25tools2::set_label(data, label = save_labels)
+ 
+   for (i in seq_along(save_labels)){
+     attr(data[[i]], "label") <- as.character(  save_labels[i])}
+  # Irgendwas sit Faul in set_label  sjlabelled::set_label
+
+    data
   }
 
   data <- data.frame(NULL)
-
-
 
   if (length(grep("\n", file)) > 0) {
     # cat("\n\nread-text\n")
@@ -237,6 +266,8 @@ get_data <- function(
                csv =  read_csv(),
                stop("Unknown extension '.", ext, "'", call. = FALSE))
 
+ 
+      
       if (cleanup.encoding) {
         data <- names_label_encoding(data)
         data <- character_encoding(data)
@@ -552,4 +583,10 @@ expand_dft <-
 #   }
 #   data
 # }
-
+# fix_names<- stp25tools2:::fix_names
+# 
+# DF <- get_data("C:/Users/wpete/Dropbox/1_Projekte/958_Franziska_Parzer/Raw data/data-fp.sav")
+# 
+# #DF <- haven::read_spss( "Raw data/data-fp.sav" )
+# # save(DF, file="Raw data/FranziskaParzer.Rdata")
+# get_label(DF[7:10])
