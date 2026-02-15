@@ -1,8 +1,8 @@
 Package: stp25tools2
 Type: Package
 Title: Tools for data wrangling and statistical transformations
-Version: 0.1.1
-Date: 2025-01-09
+Version: 0.1.2
+Date: 2025-01-12
 Authors@R: person("Wolfgang", "Peter", email = "w.peter@statistik-peter.at",  role = c("aut", "cre"))
 Description: Collection of convenient functions for common data manipulation.
 License: GPL-3
@@ -15,9 +15,10 @@ Suggests:
   stats,
   utils,
   lazyeval,
-  testthat,cowplot,
+  testthat,
   coin,
-  rms
+  rms,
+  consort
 Imports:
   knitr,plyr, 
   dplyr,
@@ -46,6 +47,11 @@ Imports:
   car,
   RColorBrewer,
   gridExtra,
-  latticeExtra
+  latticeExtra,
+  cowplot,
+  caret, 
+  consort, 
+  glue, 
+  vcd
 Config/testthat/edition: 3
 VignetteBuilder: knitr

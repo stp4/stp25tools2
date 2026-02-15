@@ -83,7 +83,7 @@ set_label <- function(data, label = NULL) {
 
   if (sum(nl) > 0) {
     for (n in nms[nl])
-      attr(data[[n]], "label") <- label[[n]]
+      attr(data[[n]], "label") <- as.character(label[[n]])
   }
   data
 }

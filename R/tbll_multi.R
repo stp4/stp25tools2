@@ -54,7 +54,8 @@
 #' #                       type.wide=TRUE)
 #'
 #' DF |> Summarise_multi(~ q2.almdd+q2.minrl+q2.cola+q2.bier+q2.wein,
-#' type.wide=TRUE)
+#' type.wide=TRUE) |>  
+#' gg_stacked(DF, facet_formula = ~Sex )
 #'
 #' DF |> Summarise_multi(~ q2.almdd+q2.minrl+q2.cola+q2.bier+q2.wein,
 #' type.wide=FALSE)
@@ -93,6 +94,10 @@ Tbll_multi <- function(...,
                        include.normality.tests = FALSE,
                        include.custom = NULL,
                        include.value = NULL) {
+  if(is.data.frame(..1)){
+    if(inherits(..1, "stp_multi")) stop("\n Ja das ist nicht schoen - aber hier muss das ohne Summarise_multi() stehn!")
+  }
+  
   rslt <-  Tbll_desc(
     ...,
     by = by,
@@ -102,7 +107,7 @@ Tbll_multi <- function(...,
     include.total = include.total,
     include.test = include.test,
 
-    include.normality.tests = include.normality.tests,    include.multiresponse = TRUE,
+    include.normality.tests = include.normality.tests, include.multiresponse = TRUE,
     include.custom = include.custom,
     include.value = include.value,
     digits = digits,
