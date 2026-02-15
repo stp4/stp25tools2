@@ -35,35 +35,33 @@
 #' Rbind2(df1, df2, df3)
 #'
 #' @export
-
-Rbind2 <- function (...,
+Rbind2 <- 
+  function (...,
                     .id = "which",
                     .names = NULL,
                     .use.label = TRUE,
                     include.rownames = FALSE) {
-
   data <- dplyr::bind_rows(..., .id = .id)
-
+  return(data)
   if (include.rownames)   {
-    data <- cbind(data[1],
-                  Source =  sub("(.*).....*", "\\1", rownames(data)),
+    data <- cbind(data[1], 
+                  Source =  sub("(.*).....*", "\\1", rownames(data)), 
                   data[-1])
   }
-
+  
   if (!is.null(.id)) {
     tmp <- list(...)
     if (is.null(.names))
       .names <- names(tmp)
-
+    
     if (is.null(.names))
       .names <- sapply(as.list(match.call()), deparse)[-1]
-
-    data[[1]] <-
-      as.character(factor(data[[1]], seq_along(.names), .names))
+    
+    data[[1]] <- factor(data[[1]], 
+                        seq_along(.names), 
+                        .names)
   }
-
-  data[[1]] <- factor(data[[1]])
-
+  
   if (.use.label) {
     label <- c(.id)
     names(label) <- .id
@@ -74,9 +72,6 @@ Rbind2 <- function (...,
       data <- set_label(data, label)
     }
   }
-
+  
   data
 }
-
-
-
