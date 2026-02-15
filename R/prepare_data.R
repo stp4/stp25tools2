@@ -4,7 +4,11 @@
 #' Supports both formula and data frame input methods, handles variable specifications,
 #' and manages grouping structures.
 #'
-#' @note This documentation was developed with assistance from DeepSeek AI.
+#' @note There's no way to correct the univariate analysis. The basic problem is 
+#' that the p-values are being misinterpreted. 
+#' It's like saying, "We've found a big difference if the p-value is small."
+#' 
+#' This documentation was developed with assistance from DeepSeek AI.
 #'
 #' @name prepare_data
 #' @aliases prepare_data.formula prepare_data.data.frame
@@ -33,7 +37,9 @@
 #'   \item `measure`: Statistical measures specifications
 #'   \item `measure.test`: Statistical tests specifications
 #'   \item `digits`: Suggested rounding digits
-#'   \item And other metadata for analysis
+#'   \item And other metadata for analysis: `condition.vars`,`formula`, 
+#'   `by`, `row_name`, `col_name`, `measure.class`, 
+#'   `group.class`, `condition.class`, `N`, `formula_in`
 #' }
 #'
 #' @details
@@ -115,6 +121,18 @@ prepare_data.formula  <- function(x,
     groups <- as.formula(paste("~", parts[2]))
   }
   
+  if (grepl(':', formula_str)) {
+    formula_lhs <- gsub(" ", "", deparse1(LHS(x)))
+    formula_lhs <-  strsplit(formula_lhs, "\\+")[[1]]
+    formula_lhs_new <- formula_lhs
+    pos <- grep(':', formula_lhs)
+    for (i in pos) {
+      colon <- eval_select_names(formula_lhs[i], names(data))
+      formula_lhs_new  <- append(formula_lhs_new, colon, after = i)
+      formula_lhs_new <- formula_lhs_new[-i]
+    }
+   x <- to_formula(formula_lhs_new, RHS(x))
+  }
   x <- expand_dot_formula(x, names(data))
   measure_vars <- LHS(x)
 
@@ -171,8 +189,6 @@ prepare_data.data.frame  <- function(data,
     )
   }
 
-  
-  
   first_expr <-  rlang::quo_squash(dots[[1]])
 
   if (rlang::is_call(first_expr, "~")) {
@@ -263,7 +279,7 @@ make_my_list <-  function(data,
 
   measure <- which_measure(extras, my_clss[formulas$measure_vars_clean], formulas$measure_vars_clean)
   measure.test <- which_test(extras, my_clss[formulas$measure_vars_clean], formulas$measure_vars_clean)
-  digits <- which_digits(extras, measure,formulas$ measure_vars_clean)
+  digits <- which_digits(extras, measure,formulas$measure_vars_clean)
   data <- transform_data(formulas$formula_trans, data, na.action, drop.unused.levels)
 
   stp25Data <-
@@ -389,10 +405,14 @@ add_headings_to_data <- function(data, sub_heading) {
 #' # BMI = "numeric"
 #' @noRd
 which_measure <- function(extras, classes, names) {
+ # cat("\nwhich_measure\n")
+ # print(extras)
   measure <-
     stringr::str_extract(
       extras,
       paste(names(get_opt("measure")), collapse = "|"))
+  
+#  print(measure)
   names(measure) <- names
   ifelse(is.na(measure), classes, measure)
 }
@@ -451,16 +471,24 @@ which_test <- function(extras, classes, names) {
 #'
 #'#' @noRd
 which_digits <- function(extras, measure, names) {
+  
+#  print(list(extras, measure, names) )
   digits <- as.integer(gsub("[^0-9]", "", extras))
   # Lookup-Tabelle für measure
   measure_map <- sapply(get_opt("measure"), get_opt,"digits")
+ # Falls nicht im Mapping vorhanden -> NA 
+  measure_map[sapply(measure_map, is.null)] <- NA
+  
   # Werte aus der Map holen
   measure_val <- unlist(measure_map[measure])
-  # Falls nicht im Mapping vorhanden -> NA
-  measure_val[is.na(measure_val)] <- NA
+  
+
+  # Das habe ich geaendert da ein Fehler bei NULL aufgetaucht ist
+  # measure_val[is.na(measure_val)] <- NA
 
   digits <-  ifelse(is.na(digits), measure_val, digits)
   names(digits) <- names
+
   digits
 }
 

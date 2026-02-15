@@ -1,34 +1,62 @@
-#' Tbll_test
-#'
-#' @param ... formula und daten
+#' Creating Tables with Inferential Statistics
+#' 
+#' A flexible feature for creating tables with inferential statistics using 
+#' user-defined statistical tests.
+#' 
+#' @note There is no way to correct the univariate analysis. The basic problem is 
+#' that the p-values are being misinterpreted. 
+#' It's like saying, "We've found a big difference if the p-value is small."
+#' 
+#' @param ... A formula specifying variables to analyze and optional grouping variables.
+#'            Format: `var1 + var2 ~ group_var` or `var1[aov] + ...`
+#' @param include.label Logical. Include variable labels in output? Default is TRUE.
 #'
 #' @return data.frame
 #' @export
 #'
 #' @examples
 #'
-#' Tbll_test(breaks + tension ~ wool , data = warpbreaks)
+#' Tbll_test(breaks + tension ~ wool, data = warpbreaks)
 #'
+#' 
+#' #'cattest <-  get_opt("test_fun_cattest")
+#' contest <-  get_opt("test_fun_contest")
+#' #' Conditional Test
+#' #' x[aov] ~  group
+#' contest
+#' #' Categorial  Test  https://en.wikipedia.org/wiki/List_of_analyses_of_categorical_data
+#' #' x[chisq] ~  group
+#' cattest
 #'
-Tbll_test <- function(...) {
+Tbll_test <- function(...,  
+                      include.label = TRUE) {
   X <- prepare_data(...)
   x <- X$measure.vars
   by = X$group.vars[1]
+  note <- NULL
   rslt <- NULL
   for (i in x) {
-    rslt <- rbind(rslt,
-                  cbind(
-                    Source = paste(i, "by", by),
-                    auto_test(
+    tst <-  auto_test(
                       x =  X$data[[i]],
                       by = X$data[[by]],
                       measure.test = X$measure.test[[i]]
                     )
+    note <- c(note, names(tst))
+    # auto_test gibt auch denNamen ses Tests zurück daher
+    # New names:
+    #    • `` -> `...2`
+    rslt <- rbind(rslt,
+                  cbind(
+                    Source = if( include.label ) X$row_name[[i]] else paste(i, "by", by),
+                    Test = tst
                   ))
   }
+  
+  
   rownames(rslt) <-  X$measure.vars
   prepare_output( rslt,
-                  caption = "Sig. Test",
+                  caption = paste("Univariate test", "by", X$col_name),
+                  note = paste(unique(note), collapse=", "),
                   N = nrow(X$data))
 
 }
@@ -36,8 +64,10 @@ Tbll_test <- function(...) {
 
 #' @rdname Tbll_test
 #'
-#' @description auto_test(): Interne Funktion fuer Sig-Test in  Tbll_desc.  include.custom = auto_test
-#' @param x  vector , formula x~gruppe
+#' @description auto_test(): Interne Funktion fuer Sig-Test in Tbll_desc.  
+#' include.custom = auto_test
+#' 
+#' @param x  vector , formula x ~ gruppe
 #' @param data data.frame
 #' @param by  vector (group)
 #'
@@ -88,7 +118,7 @@ auto_test <- function(x= 1:16,
     if (inherits(x, "factor")) {dat$x <-as.numeric(dat$x) }
     rslt <- conTest(x ~ by, dat, measure.test) }
   else if (measure.test %in% cattest) {rslt <- catTest(~ x + by, dat, measure.test) }
-
+#print(rslt)
 return(rslt)
   # workaround der aber nicht fehlerfrei ist
   # wenn bei den  stp-options mark.sig = TRUE dann get das nicht
@@ -115,6 +145,7 @@ size_data_tabel <- function(x, data) {
 #' @rdname Tbll_test
 #' @description conTest(): spearmanTest2, WilkoxTest2,
 #' KruskalTest2,TTest2, Aov2
+#' 
 #' @examples
 #'
 #' \donttest{
@@ -190,7 +221,9 @@ conTest = function(x,
 
 #' @rdname Tbll_test
 #' @param include.test Tbll_desc kann entweder logical oder den Test uebergeben
+#' 
 #' @description catTest(): chisqTest2, fisherTest2, gml_binomial
+#' 
 catTest = function(x,
                    data,
                    include.test = "chisq") {
@@ -216,7 +249,8 @@ catTest = function(x,
 }
 
 #' @rdname Tbll_test
-#' @description  ordTest(). Logistic Regression Model  >Hier gibt es noch einen Fehler!!!
+#' @description  ordTest(). Logistic Regression Model  `Hier gibt es noch einen Fehler!!!`
+#' 
 ordTest = function(x, data) {
   g <- size_data_tabel(x, data)
   if (all(g > 4)) {
@@ -238,8 +272,11 @@ ordTest = function(x, data) {
 
 #' @rdname Tbll_test
 #' @description  spearmanTest2(): Uses midranks in case of ties, as described by Hollander and Wolfe.
+#' 
 #' P-values for Spearman, Wilcoxon, or Kruskal-Wallis tests are
 #' approximated by using the t or F distributions.
+#' 
+#' 
 spearmanTest2 <- function(x, data) {
   st <- Hmisc::spearman2(x, data)
   if (is.na(st[3]))
@@ -257,6 +294,7 @@ spearmanTest2 <- function(x, data) {
 
 #' @rdname Tbll_test
 #' @description WilkoxTest2(): wilcox.test
+#' 
 WilkoxTest2 <- function(x, data) {
   suppressWarnings(res <-
                      stats::wilcox.test(x, data,
@@ -270,6 +308,7 @@ WilkoxTest2 <- function(x, data) {
 
 #' @rdname Tbll_test
 #' @description KruskalTest2(): kruskal.test
+#' 
 KruskalTest2 <- function(x, data) {
   res <- stats::kruskal.test(x, data)
   res <-
@@ -293,6 +332,7 @@ Aov2 <- function(x, data) {
 
 #' @rdname Tbll_test
 #' @description TTest2(): t.test
+#' 
 TTest2 <- function(x, data) {
   res <- stats::t.test(x, data, alternative =  "two.sided")
   res <-
@@ -304,7 +344,7 @@ TTest2 <- function(x, data) {
 
 #' @rdname Tbll_test
 #' @description chisqTest2(): chisq.test
-
+#' 
 chisqTest2 <- function(x, data) {
   # print(stats::xtabs(x, data, drop.unused.levels = TRUE))
 
@@ -329,6 +369,7 @@ chisqTest2 <- function(x, data) {
 #   APA(glm(fm, xt, family = poisson()))
 #
 # }
+
 
 
 #' @rdname Tbll_test
@@ -362,10 +403,6 @@ gml_binomial <- function(x, data) {
   names(rslt) <- "LRT-Test"
   rslt
 }
-
-
-
-
 
 
 #' @rdname Tbll_test

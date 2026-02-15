@@ -159,7 +159,7 @@ Tbll_regression <- function(...,
   }
 
 
-  print(model_names)
+#  print(model_names)
   # Dynamisch verfügbare Parameter-Variablen generieren
   param_vars <-  "Parameter"
   if (include.b) param_vars <- c(param_vars, "Coefficient")
@@ -258,7 +258,8 @@ Tbll_regression <- function(...,
 
      param_vars_temp <- intersect(param_vars, names(param))
      param <- param[param_vars_temp]
-     if(number_models > 1) names(param) <- c(param_vars_temp[1], paste0(model_name, "_", param_vars_temp[-1]))
+     if(number_models > 1) names(param) <- 
+       c(param_vars_temp[1], paste0(model_name, "_", param_vars_temp[-1]))
 
     # Mergen mit vorherigen Modellen
      if (i == 1)
