@@ -1,8 +1,8 @@
 Package: stp25tools2
 Type: Package
 Title: Tools for data wrangling and statistical transformations
-Version: 0.1.2
-Date: 2025-01-12
+Version: 0.1.3
+Date: 15.02.2026
 Authors@R: person("Wolfgang", "Peter", email = "w.peter@statistik-peter.at",  role = c("aut", "cre"))
 Description: Collection of convenient functions for common data manipulation.
 License: GPL-3
