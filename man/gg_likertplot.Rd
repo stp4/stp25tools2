@@ -45,7 +45,12 @@ object from \code{Summarise_likert()}}
 
 \item{wrap}{Numeric width for wrapping item labels}
 
-\item{palette}{Character color palette name}
+\item{palette}{Character color palette name
+[ggplot2::scale_fill_brewer()]. Standard `"BrBG"`.
+
+- Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
+- Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
+- Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd}
 
 \item{direction}{Numeric direction for color palette (1 or -1)}
 
@@ -63,6 +68,9 @@ A ggplot object
 \description{
 Creates customizable bar charts for Likert and multi-response data with support
 for grouping, ordering, and various styling options.
+}
+\note{
+Documentation created with assistance from ChatGPT.
 }
 \examples{
 

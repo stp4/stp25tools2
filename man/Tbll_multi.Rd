@@ -145,7 +145,8 @@ DF$sex <- factor(c(1,1,1,1,1,1,1,2,2,2,2,2,2,2,2),
 #                       type.wide=TRUE)
 
 DF |> Summarise_multi(~ q2.almdd+q2.minrl+q2.cola+q2.bier+q2.wein,
-type.wide=TRUE)
+type.wide=TRUE) |>  
+gg_stacked(DF, facet_formula = ~Sex )
 
 DF |> Summarise_multi(~ q2.almdd+q2.minrl+q2.cola+q2.bier+q2.wein,
 type.wide=FALSE)

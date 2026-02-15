@@ -33,6 +33,9 @@ A tibble in wide format
 A more user-friendly wrapper around `tidyr::pivot_wider()` that supports
 both formula and variable name syntax for reshaping data.
 }
+\note{
+Documentation created with assistance from ChatGPT.
+}
 \examples{
 df <- data.frame(
   month = rep(month.abb[1:3], 2),

@@ -34,7 +34,7 @@ Diese Vignette demonstriert die Verwendung der `Tbll_effect` Funktion für
 verschiedene Regressionsmodelle, einschließlich Transformationen und
 spezieller Effekt-Darstellungen.
 
-  
+
 ```{r data, include=FALSE}
 DF <- data.frame(
   y = c(12, 15, 23, 44, 11, 44, 49, 27, 25, 8,
@@ -49,11 +49,11 @@ DF <- data.frame(
 DF$log.y <- log(DF$y)
 
 ```
- 
+
 
 
 ## Modelle erstellen
-  
+
 ```{r models}
 fit.linear <- lm(y ~ iq, DF)
 fit.log.y <- lm(log.y ~ iq, DF)
@@ -66,13 +66,13 @@ fit.model.log <- lm(log(y) ~ iq, DF)
 
 ### Lineares Modell
 
-  
+
 ```{r basic-effects}
 Tbll_effect(fit.linear, "iq", include.ci = FALSE)
 ```
 ### Modell mit log-transformierter abhängiger Variable
 
-  
+
 ```{r}
 Tbll_effect(fit.log.y, "iq", include.ci = FALSE)
 ```
@@ -85,7 +85,7 @@ Tbll_effect(fit.model.log, "iq", include.ci = FALSE)
 ## Transformationen anwenden
 
 
-  
+
 ```{r}
 Tbll_effect(fit.log.y, "iq", include.ci = FALSE,
             transformation = list(link = log, inverse = exp))
@@ -101,7 +101,7 @@ Tbll_effect(fit.model.log, "iq", include.ci = FALSE,
 
 Direkter Aufruf von `effects::effect()`
 
-  
+
 ```{r}
 effects::effect("iq", fit.model.log,
                 xlevels = list(iq = c(90, 100, 110)),
@@ -110,7 +110,7 @@ effects::effect("iq", fit.model.log,
 
 
 ## Grafische Darstellungen
-  
+
 ```{r plot-grid, fig.cap="Vergleich verschiedener Modell-Darstellungen"}
 
 p1 <- plot(effect("iq", fit.linear, partial.residuals = TRUE),
@@ -161,6 +161,142 @@ Tbll_effect(fit.linear, "iq", include.n = TRUE, include.ci = TRUE, digits = 2)
 # Multiple Term-Spezifikation via Formula.
 Tbll_effect(fit.linear, ~ iq, include.ci = TRUE)
 ```
+
+
+
+
+
+## Plots
+
+Enhanced Plot Function for 'effects' Objects
+
+```{r model-2,include=FALSE}
+require(dplyr)
+require(stp25tools2)
+require(flexplot)
+#require(emmeans)
+#require(flextable)
+
+mtcars2 <- mtcars |>
+  dplyr::mutate(
+    vs   = factor(vs, labels = c("V-shaped", "straight")),
+    am   = factor(am, labels = c("automatic", "manual")),
+    cyl  = ordered(cyl),
+    gear = ordered(gear),
+    carb = ordered(carb),
+     mpg =mpg * 0.425143707,
+    wt = wt *0.4535923744953
+  ) |> Label(
+    mpg	 = "Fuel consumption (km/l)",
+    cyl	 = "Number of cylinders",
+    disp = "Displacement (cu.in.)",
+    hp	 = "Gross horsepower",
+    drat = "Rear axle ratio",
+    wt   = "Weight (kg)",
+    qsec = "1/4 mile time",
+    vs   = "Engine",
+    am   = "Transmission",
+    gear = "Number of forward gears",
+    carb = "Number of carburetors"
+  )
+
+fit <- lm(mpg ~ hp * wt + vs +  am * cyl  , data = mtcars2)
+
+Tbll_effect(fit)
+
+```
+
+
+```{r}
+# lattice::trellis.par.set(effectsTheme())
+lattice::trellis.par.set(bw_theme(farbe(n=5), lwd = 1))
+```
+
+
+
+```{r, fig.cap="Modell-Darstellungen effects::allEffects"}
+# effects::allEffects
+plot_effect(
+  fit,
+  labels = get_label(mtcars2),
+  main = letters[1:3],  #as.roman(1:3),
+  # cex= 1,
+  space = "right",
+  columns = 1,
+  rel_widths = c(3, 4),
+  rel_heights = c(5, 6)
+)
+```
+
+
+
+
+
+
+```{r, fig.cap="Modell-Darstellungen effects::effect", fig.height=3, fig.width=5}
+# effects::effect()
+plot_effect(fit,  ~ cyl * am)
+```
+
+
+```{r, fig.cap="Modell-Darstellungen effects::effect", fig.height=3, fig.width=4.3}
+# effects::effect()
+plot_effect(fit,  ~ am * cyl,    
+            ylab = "Fuel consumption (km/l)" )
+```
+
+
+
+```{r, fig.cap="Modell-Darstellungen effects::predictorEffect", fig.height=3, fig.width=7}
+#effects::predictorEffect 
+plot_effect(fit, predictor = ~ am * cyl)
+```
+
+
+
+```{r alt-flexplot, fig.cap="Modell-Darstellungen flexplot::visualize", fig.height=3, fig.width=6}
+# flexplot ggplot-object
+flexplot::visualize( fit, "model", mpg ~ cyl |  am)
+
+```
+
+
+
+# Unterschied partial.residuals vs. Streudiagram
+
+Wenn nur ein Effect im Modell aufgenommen wurde 
+sind die partial.residuals und die tatsächlichen Werte identisch. Bei meheren verschieben sich die Werte.
+
+
+```{r}
+library(effects)
+library(lattice)
+
+fit <- lm(mpg ~ hp*wt+am, data = mtcars)
+eff <- effect("hp", fit, partial.residuals = TRUE)
+
+# Trellis-Objekt erzeugen, aber noch nicht plotten
+trel <- plot(eff)
+
+# Ursprüngliche Panel-Funktion sichern
+orig_panel <- trel$panel
+
+# Update: erst original Panel aufrufen, dann Punkte hinzufügen
+trel2 <- update(trel,
+                panel = function(x, y, ...) {
+                  orig_panel(x, y, ...)  # ruft die standardmäßige Effekt-Darstellung auf
+                  panel.points(mtcars$hp, mtcars$mpg,
+                               pch = 16, cex = 0.8, col = "blue")
+                }
+)
+
+# Jetzt zeichnen
+cowplot::plot_grid(
+trel,trel2)
+
+```
+
+
 
 
 ## Praxis-Tipps

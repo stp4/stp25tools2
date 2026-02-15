@@ -11,6 +11,7 @@ gg_stacked(
   facet_formula = NULL,
   include.order = NULL,
   decreasing = TRUE,
+  include.order.last = NULL,
   include.reference = NULL,
   palette = "BrBG",
   direction = 1,
@@ -22,7 +23,8 @@ gg_stacked(
   wrap = 40,
   width = 0.9,
   border = NA,
-  item_levels = NULL
+  item_levels = NULL,
+  include.total = TRUE
 )
 
 \method{plot}{stp_multi}(x, ...)
@@ -37,17 +39,22 @@ für die Kategorien (`x`), die Häufigkeiten (`weight`) und die Füllfarben (`fi
 - `fill` : Gruppierungsvariable für die Balkensegmente (Default: `"levels"`).
 - `grouping` : Optionale Variable zur Bildung von Facetten (Default: `".grouping"`).}
 
-\item{facet_formula}{Eine Facetten-Formel für [ggplot2::facet_grid()].
-Wird automatisch aus `grouping` abgeleitet, falls angegeben.}
+\item{facet_formula, include.total}{Eine Facetten-Formel für [ggplot2::facet_grid()].
+Wird automatisch aus `grouping` abgeleitet, falls angegeben.
+Wenn include.total == FALSE dann wird der Level Total entfernt}
 
-\item{include.order}{Optionaler Vektor zur Steuerung der Reihenfolge der Items.}
+\item{include.order, include.order.last}{Optionaler Vektor zur Steuerung der 
+Reihenfolge der Items. include.order.last numeric welcher Eintrag ist der letzte.}
 
 \item{decreasing}{`logical`. Wenn `TRUE` (Default), werden Items absteigend sortiert.}
 
 \item{include.reference}{Optional: Referenzlevel, das immer einbezogen wird.}
 
 \item{palette}{Farbpalette für die Segmente, weitergereicht an
-[ggplot2::scale_fill_brewer()]. Standard `"BrBG"`.}
+[ggplot2::scale_fill_brewer()]. Standard `"BrBG"`.
+- Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
+- Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
+- Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd}
 
 \item{direction}{Richtung der Farbskala (`1` oder `-1`).}
 
@@ -90,33 +97,41 @@ Labels (Zahlen oder Prozente) steuern.
 - Falls eine Gruppierungsvariable angegeben ist, werden die Items
   gruppenspezifisch mit [tidytext::reorder_within()] sortiert.
 }
+\note{
+Documentation created with assistance from ChatGPT.
+}
 \examples{
 library(tibble)
-library(ggplot2)
-
+require(ggplot2)
 # Beispiel mit Standardspalten
-DF <- tibble(
+
+DF1 <- tibble(
   id = 1:6,
-  .grouping = rep("Domain A", 6),
-  Sex = rep(c("female","male"), 3),
+  .grouping = c(rep("Domain A", 4), "Domain B","Domain B"),
+  Sex = rep("female", 6),
   Item = factor(rep(c("Fruit", "Vegetables", "Milk"), each = 2)),
   levels = rep(c(TRUE, FALSE), 3),
-  Freq = c(20,10, 15,25, 30,12)
+  Freq = c(55,55, 15, 85, 30,70)
 )
+DF2 <- tibble(
+  id = 1:6,
+  .grouping = c(rep("Domain A", 4), "Domain B","Domain B"),
+  Sex = rep("male", 6),
+  Item = factor(rep(c("Fruit", "Vegetables", "Milk"), each = 2)),
+  levels = rep(c(TRUE, FALSE), 3),
+  Freq = c(47,70, 20, 80, 30,70)
+)
+DF<- rbind(DF1,DF2)
+DF
 
-gg_stacked(DF)
-
-# Mit eigenen Spaltennamen und Facettierung
-DF2 <- DF
-names(DF2) <- c("id", "food_group", "Sex", "Frage", "factor_levels", "Anzahl")
-
-gg_stacked(
-  DF2,
-  x = Frage,
-  weight = Anzahl,
-  fill = factor_levels,
-  grouping = food_group,
-  facet_formula = food_group ~ Sex
+cowplot::plot_grid(
+  gg_stacked(DF, 
+             facet_formula =  ~Sex ) +  
+    theme(legend.position="none"),
+  gg_stacked(DF, 
+             facet_formula = .grouping~Sex, include.percent = FALSE ) +  
+    theme(legend.position="none")
+  #+ scale_fill_discrete(limits = c(TRUE, FALSE))
 )
 
 }

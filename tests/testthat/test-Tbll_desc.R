@@ -29,6 +29,12 @@ test_that("include.value works", {
         tension = "OR = .0256")
   )
 
+ set_opt(
+   mean = list(digits=2),
+  # median = list(digits = 0, style=1),
+   percent = list(digits = 0)
+ )
+ 
   rslt1 <- Tbll_desc(
     warpbreaks,
     "H1",
@@ -43,14 +49,14 @@ test_that("include.value works", {
   )
 
 
-  rslt2 <- tibble::tribble( ~Item,~A,~B,~ES,~OR,
-                            "(N) ","27","27",NA,    NA,
-                            "H1 ","","",NA,NA,
+  rslt2 <- tibble::tribble( ~Item,  ~A,   ~B,   ~ES,    ~OR,
+                            "(N) ", "27", "27",          NA,     NA,
+                            "H1 ",  "",   "",            NA,     NA,
                             "breaks (mean)", "31.04 (15.85)", "25.26 (9.30)",1,3,
-                            "tension ","","",2,4,
-                            "    L","33% (9)","33% (9)",NA,    NA,
-                            "    M","33% (9)","33% (9)",NA,    NA,
-                            "    H","33% (9)","33% (9)",NA  ,  NA)
+                            "tension ","","",             2,      4,
+                            "    L","33% (9)","33% (9)", NA,     NA,
+                            "    M","33% (9)","33% (9)", NA,     NA,
+                            "    H","33% (9)","33% (9)", NA,     NA)
 
 
   expect_equal(rslt1, rslt2, ignore_attr = TRUE)
@@ -241,7 +247,7 @@ rslt$Statistics,
   "X2(1)=2.14, p=.143",
   "ordtest" ,
   "X2(1)=2.14, p=.143" ,
-  "" ,
+  "no-test" ,
   "F(1, 28)=2.70, p=.112"
 )
 )

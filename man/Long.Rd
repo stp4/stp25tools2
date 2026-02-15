@@ -47,6 +47,9 @@ A data frame in long format
 An enhanced version of `tidyr::pivot_longer()` that supports both formula and
 variable name syntax, with additional features for handling labels and column specifications.
 }
+\note{
+Documentation created with assistance from ChatGPT.
+}
 \examples{
 df <- data.frame(
   month = rep(month.abb[1:3], 2),

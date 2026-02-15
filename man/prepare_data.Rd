@@ -80,7 +80,9 @@ A list with components for analysis including:
   \item `measure`: Statistical measures specifications
   \item `measure.test`: Statistical tests specifications
   \item `digits`: Suggested rounding digits
-  \item And other metadata for analysis
+  \item And other metadata for analysis: `condition.vars`,`formula`, 
+  `by`, `row_name`, `col_name`, `measure.class`, 
+  `group.class`, `condition.class`, `N`, `formula_in`
 }
 
 data.frame
@@ -112,6 +114,10 @@ Both methods:
 - Support complex variable specifications
 }
 \note{
+There's no way to correct the univariate analysis. The basic problem is 
+that the p-values are being misinterpreted. 
+It's like saying, "We've found a big difference if the p-value is small."
+
 This documentation was developed with assistance from DeepSeek AI.
 }
 \section{Methods}{

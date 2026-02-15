@@ -13,5 +13,5 @@ test_check("stp25tools2")
 
 
 # usethis::use_testthat()
- #usethis::use_test("lattice-marginal_plot")
+#  usethis::use_test("tbll_anova")
 # usethis::use_r("coolstuff")

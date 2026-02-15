@@ -2,9 +2,15 @@
 % Please edit documentation in R/get_data.R
 \name{get_data}
 \alias{get_data}
+\alias{get_data.data.frame}
+\alias{get_data.default}
 \title{Import a dataset from various formats or from inline text}
 \usage{
-get_data(
+get_data(...)
+
+\method{get_data}{data.frame}(data, ...)
+
+\method{get_data}{default}(
   file = NA_character_,
   na.strings = NULL,
   dec = ".",
@@ -32,6 +38,8 @@ get_data(
 )
 }
 \arguments{
+\item{...}{Additional arguments passed to underlying read functions or to `expand_table()`.}
+
 \item{file}{Path to a data file (`.xlsx`, `.sav`, `.csv`) or a character string containing table-like text.}
 
 \item{na.strings}{Character vector of strings to be interpreted as missing values (default: `c("NA", "na")`).}
@@ -77,8 +85,6 @@ get_data(
 \item{value}{Name of the output value column when `tabel_expand = TRUE`.}
 
 \item{label}{Integer or character: position or name of a row containing variable labels (0 = no labels).}
-
-\item{...}{Additional arguments passed to underlying read functions or to `expand_table()`.}
 }
 \value{
 A data frame or tibble containing the imported dataset.

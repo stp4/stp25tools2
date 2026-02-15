@@ -14,9 +14,9 @@
 \alias{chisqTest2}
 \alias{gml_binomial}
 \alias{fisherTest2}
-\title{Tbll_test}
+\title{Creating Tables with Inferential Statistics}
 \usage{
-Tbll_test(...)
+Tbll_test(..., include.label = TRUE)
 
 auto_test(
   x = 1:16,
@@ -48,9 +48,12 @@ gml_binomial(x, data)
 fisherTest2(x, data)
 }
 \arguments{
-\item{...}{formula und daten}
+\item{...}{A formula specifying variables to analyze and optional grouping variables.
+Format: `var1 + var2 ~ group_var` or `var1[aov] + ...`}
 
-\item{x}{vector , formula x~gruppe}
+\item{include.label}{Logical. Include variable labels in output? Default is TRUE.}
+
+\item{x}{vector , formula x ~ gruppe}
 
 \item{by}{vector (group)}
 
@@ -71,16 +74,21 @@ data.frame
 formatierter String, matrix with one row
 }
 \description{
-auto_test(): Interne Funktion fuer Sig-Test in  Tbll_desc.  include.custom = auto_test
+A flexible feature for creating tables with inferential statistics using 
+user-defined statistical tests.
+
+auto_test(): Interne Funktion fuer Sig-Test in Tbll_desc.  
+include.custom = auto_test
 
 conTest(): spearmanTest2, WilkoxTest2,
 KruskalTest2,TTest2, Aov2
 
 catTest(): chisqTest2, fisherTest2, gml_binomial
 
-ordTest(). Logistic Regression Model  >Hier gibt es noch einen Fehler!!!
+ordTest(). Logistic Regression Model  `Hier gibt es noch einen Fehler!!!`
 
 spearmanTest2(): Uses midranks in case of ties, as described by Hollander and Wolfe.
+
 P-values for Spearman, Wilcoxon, or Kruskal-Wallis tests are
 approximated by using the t or F distributions.
 
@@ -98,10 +106,24 @@ gml_binomial(): glm
 
 fisherTest2(): fisher.test
 }
+\note{
+There is no way to correct the univariate analysis. The basic problem is 
+that the p-values are being misinterpreted. 
+It's like saying, "We've found a big difference if the p-value is small."
+}
 \examples{
 
-Tbll_test(breaks + tension ~ wool , data = warpbreaks)
+Tbll_test(breaks + tension ~ wool, data = warpbreaks)
 
+
+#'cattest <-  get_opt("test_fun_cattest")
+contest <-  get_opt("test_fun_contest")
+#' Conditional Test
+#' x[aov] ~  group
+contest
+#' Categorial  Test  https://en.wikipedia.org/wiki/List_of_analyses_of_categorical_data
+#' x[chisq] ~  group
+cattest
 
 
  dat <- data.frame(

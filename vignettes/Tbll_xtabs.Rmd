@@ -1,0 +1,319 @@
+---
+title: "Kreuztabellen mit Tbll_xtabs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Kreuztabellen mit Tbll_xtabs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+library(stp25output2)
+library(stp25tools2)
+```
+
+## Einführung
+
+Kontingenztafeln, Kontingenztabellen oder Kreuztabellen zeigen die Häufigkeitsverteilung zweier oder mehrerer kategorialer Variablen.
+Sie dienen dazu, statistische Abhängigkeiten zwischen Variablen zu erkennen und zu quantifizieren.
+
+Kreuztabellen können sowohl **deskriptiv** als auch mittels **inferenzstatistischer Tests** oder **log-linearer Modelle** analysiert werden.
+
+Die Hypothesen des Chi-Quadrat-Tests auf Unabhängigkeit lauten:
+
+* **(H_0)**: Die Variablen sind unabhängig (keine Assoziation).
+* **(H_1)**: Die Variablen sind nicht unabhängig (es liegt eine Assoziation vor).
+
+---
+
+## Statistische Auswertung in `Tbll_xtabs()`
+
+`Tbll_xtabs()` unterstützt verschiedene Maße und Tests zur Beurteilung von Kreuztabellen:
+
+### **Zusammenhangsmaße**
+
+* **Kontingenzkoeffizienten**
+
+  * Chi-Quadrat-Koeffizient
+  * Pearson-Kontingenzkoeffizient
+  * **Cramers V**
+  * Phi-Koeffizient (für 2×2-Tabellen)
+
+* **Fehlerreduktionsmaße**
+
+  * Goodman & Kruskal’s Lambda (λ)
+  * Goodman & Kruskal’s Tau (τ)
+
+### **Tests**
+
+* Chi-Quadrat-Test der Unabhängigkeit (`chisq.test()`)
+* Vierfeldertest / Odds-Ratio-Test (bei 2×2 Tabellen)
+* Sensitivität, Spezifität, PPV, NPV (bei 2×2 Konfusionsmatrix)
+* Exakter Test nach Fisher (`fisher.test()`)
+* Cochran–Mantel–Haenszel-Test (`mantelhaen.test()`) bei stratifizierten 2×2-Tabellen
+
+### **Weitere Verfahren**
+
+* **Log-lineare Modelle** zur Analyse von Mehrfachabhängigkeiten
+* Grafische Darstellung: **Mosaikplots**, Assoziationsplots
+* Korrespondenzanalyse (Paket **ca**)
+
+---
+
+## Inferenzstatistik
+
+### **Chi-Quadrat-Test und Fisher-Test**
+
+Der Chi-Quadrat-Test prüft, ob die beobachteten Häufigkeiten signifikant von den zu erwartenden Häufigkeiten unter Unabhängigkeit abweichen.
+Wenn erwartete Zellhäufigkeiten kleiner als 5 sind, ist der **Fisher-Exact-Test** zu bevorzugen.
+
+### **Cochran–Mantel–Haenszel-Test**
+
+Der CMH-Test untersucht, ob in mehreren 2×2-Tabellen (z. B. über Gruppen hinweg) ein gemeinsamer Zusammenhang besteht und kontrolliert dabei für Confounder.
+
+---
+
+## Kontingenzmaße
+
+Kontingenzmaße quantifizieren **die Stärke eines Zusammenhangs**, unabhängig vom Signifikanztest.
+
+### **Cramers V**
+
+Cramers V ist ein normiertes Maß (0–1).
+Typische Faustregeln:
+
+* **V = 0**: kein Zusammenhang
+* **0 < V < 0.2**: schwacher Zusammenhang
+* **0.2 ≤ V < 0.6**: mittlerer Zusammenhang
+* **0.6 ≤ V < 1**: starker Zusammenhang
+* **V = 1**: perfekter Zusammenhang
+
+(Achtung: Die Stärkeinterpretation hängt von Stichprobengröße und Tabellenstruktur ab.)
+
+---
+
+## Odds Ratios und Relative Risiken
+
+Für 2×2-Tabellen sind **Odds Ratio (OR)** und **Relatives Risiko (RR)** zentrale Effektmaße.
+
+
+### Interpretation von Odds Ratio und Relativem Risiko
+
+**Relatives Risiko (RR)**
+Das Relative Risiko vergleicht die *Wahrscheinlichkeit* eines Ereignisses zwischen zwei Gruppen.
+
+$$RR = \frac{p_{\text{Exponiert}}}{p_{\text{Nicht exponiert}}}$$
+
+
+**Interpretation:**
+
+* **RR = 1** → kein Unterschied zwischen den Gruppen
+* **RR > 1** → Risiko ist in der exponierten Gruppe erhöht
+* **RR < 1** → Risiko ist in der exponierten Gruppe verringert (Schutzeffekt)
+
+Beispiel:
+Ein RR von **2.0** bedeutet: *Die exponierte Gruppe hat doppelt so häufig das Ereignis wie die Vergleichsgruppe.*
+
+---
+
+**Odds Ratio (OR)**
+Die Odds Ratio vergleicht die *Quoten* (Odds) zweier Gruppen:
+
+$$OR = \frac{\text{Odds}*{\text{Exponiert}}}{\text{Odds}*{\text{Nicht exponiert}}}$$
+
+
+**Interpretation:**
+
+* **OR = 1** → kein Unterschied der Quoten
+* **OR > 1** → höhere Quote in der exponierten Gruppe
+* **OR < 1** → geringere Quote (Schutzeffekt)
+
+Beispiel:
+Ein OR von **3.0** bedeutet: *Die Odds des Ereignisses sind in der exponierten Gruppe dreimal so hoch.*
+
+### Umrechnung: OR → RR
+
+Für logistische Regressionsmodelle:
+$$RR=\frac{1+exp(-\beta_0)}{1+exp(-\beta_0 - \beta_1)}$$
+ 
+
+Alternative Umformung:
+
+$$RR = \frac{OR} {1 – p + (p \cdot OR)}$$
+
+wobei (p) die Inzidenz in der Referenzgruppe ist.
+Where p is the base-rate risk - the probability of the event without the intervention.
+
+---
+
+## Mosaic-Plot
+
+Ein Mosaikplot visualisiert eine Kontingenztabelle, indem die Fläche der einzelnen Rechtecke proportional zu den beobachteten Häufigkeiten ist.
+Zusätzlich können Abweichungen von den erwarteten Häufigkeiten farblich markiert werden (z. B. Residuen).
+
+---
+
+## Log-Lineare Modelle
+
+Log-lineare Modelle analysieren Abhängigkeiten in mehrdimensionalen Kontingenztafeln.
+Im Gegensatz zur Regression wird hier **nicht** zwischen abhängiger und unabhängiger Variablen unterschieden; alle Variablen sind kategorial.
+
+Empfehlungen:
+
+* Die erwarteten Zellhäufigkeiten sollten ausreichend groß sein (mind. 5 pro Zelle).
+* Bei Tabellen mit drei Faktoren (A, B, C) werden typischerweise fünf Standardmodelle geprüft:
+
+| Modell                       | Modellformel      | Symbol       |
+| ---------------------------- | ----------------- | ------------ |
+| Gegenseitige Unabhängigkeit  | ~ A + B + C       | [A][B][C]    |
+| Gemeinsame Unabhängigkeit    | ~ A * B + C       | [AB][C]      |
+| Bedingte Unabhängigkeit      | ~ (A + B) * C     | [AC][BC]     |
+| Alle Zwei-Wege-Assoziationen | ~ A*B + A*C + B*C | [AB][AC][BC] |
+| Sättigtes Modell             | ~ A * B * C       | [ABC]        |
+
+Weitere Details siehe: *vcdExtra*-Vignette zu log-linearen Modellen.
+
+---
+
+
+
+## 2x2 Tabelle
+
+
+```{r, include=FALSE}
+# Datensatz als Einzelbeobachtungen erstellen:
+
+ 
+DF <- data.frame(
+  Exposition = c(rep("exponiert",24+96),  rep("nicht-exponiert", 48+592)),
+  Ereignis =  factor(c(
+   rep("krank", 24), rep("nicht-krank", 96),      # Exponiert
+   rep("krank", 48), rep("nicht-krank", 592))       # Nicht exponiert
+  )
+)
+```
+
+Simples Auszaehlen und Chi-Quadrat Test.
+
+
+
+```{r, results='asis'}
+# Inzidenzrate exponiert
+Tbll_xtabs(Exposition ~  Ereignis, 
+           DF,
+           margin="Exposition", 
+           include.test = TRUE ) |> Output(output="html")
+```
+
+
+### Jetzt von Hand
+
+```{r}
+xtabs(~ Exposition + Ereignis, DF) -> x_data
+(prcnt <- addmargins(prop.table(x_data, margin = 1), 2))
+```
+
+  - OR mit Fisher-Test
+```{r}
+x_data |> fisher.test()
+ 
+```
+
+  - OR mit DescTool
+  
+```{r}
+(OR <- DescTools::OddsRatio(x_data))
+(RR<- DescTools::RelRisk(x_data))
+```
+
+  -  RR aus OR 
+
+wobei (p) die Inzidenz in der Referenzgruppe ist.
+
+```{r}
+p <-prcnt[2,1]
+  OR/((1-p) + p*OR)
+# library(effectsize)
+# oddsratio_to_riskratio
+```
+
+
+### GLM-Modelle
+
+  - Binomial-Modellen (log-linear)
+
+```{r}
+mod <- glm(Ereignis ~ Exposition, data = DF, family = binomial)
+#summary(mod)
+OR_glm <- exp(coef(mod)[2])
+round(OR_glm,2)
+```
+
+  - Binomial-Modellen mit xtabs
+
+```{r}
+# long-x-tab data
+x_data_long <-xtabs(~ Exposition + Ereignis, DF) |>
+  data.frame()
+# wieder zurueck 
+# xtabs(Freq ~ Exposition + Ereignis, x_data_long)
+
+glm_logistic <- glm( Ereignis~ Exposition,
+                    data=x_data_long, 
+                    weights = Freq,
+                    family = binomial())
+#OR
+OR_glm <- exp(coef(glm_logistic)[2])
+round(OR_glm ,2)
+```
+
+  - Poisson-Modellen. Das Poisson-Modellen kann sowohl OR (log-linear) als auch RR (log-binomial-Approximation) schaetzen.
+
+```{r}
+glm_poisson <- glm(Freq ~ Ereignis*Exposition,
+                      data = x_data_long,  
+                    family = poisson())
+
+RR_OR_glm <- exp(coef(glm_poisson))[3:4]
+round(RR_OR_glm, 3)
+```
+
+  - Log-Linear Models
+```{r}
+require(MASS)
+require(vcd)
+(mart.1 <- MASS::loglm(~ Exposition + Ereignis, data = x_data))
+(x_lor <- oddsratio(x_data, log = FALSE)) # odds ratio
+
+confint(x_lor)
+summary(x_lor)
+coef(x_lor)
+```
+
+
+
+
+
+
+
+
+## Zusammenfassung
+
+`Tbll_xtabs()` stellt eine umfassende Funktion zur Analyse von Kontingenztafeln bereit, inklusive:
+
+* Häufigkeitstabellen
+* Effektmaße
+* Signifikanztests
+* grafische Darstellungen
+* Erweiterungen mit log-linearen Modellen
+
+Damit eignet sich die Funktion sowohl für einfache 2×2-Tabellen als auch für komplexere mehrdimensionale Analysen.
+
+

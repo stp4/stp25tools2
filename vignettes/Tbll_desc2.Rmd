@@ -95,7 +95,9 @@ Man kann eigene Maße einfügen, z. B. eine Funktion, die n, Mittelwert und Stan
 
 
 ```{r}
-n_mean_sd <- function(x, n, digits, ...) {
+
+n_mean_sd <- function(x, digits, n,  ...) {
+  if( is.na(digits)  ) digits <- 2
   data.frame(
     lev = c("   n", "   mean", "   sd"),
     n = c(as.character(n), "", ""),
@@ -106,11 +108,12 @@ n_mean_sd <- function(x, n, digits, ...) {
     )
   )
 }
+#init_stp25_options()
 
-set_opt(
-  measure_fun = list(fun="n_mean_sd"),
-  measure = list(fun="factor")
-)
+
+add_fun_opt("n_mean_sd")
+
+
 ```
 
 

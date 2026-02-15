@@ -49,7 +49,7 @@ Options: "wilcoxon", "t.test", "anova", etc. Default is FALSE.}
 
 \item{digits}{Numeric. Default decimal places for output.}
 
-\item{use.level}{Numeric. Level for hierarchical variables (default 1).}
+\item{use.level}{Numeric. Level for multi responbse variables (default 1).}
 
 \item{use.duplicated}{Logical. Allow duplicate variables? Default is FALSE.}
 
