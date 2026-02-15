@@ -1,4 +1,4 @@
-
+.stp25output2 <- new.env()
 # usethis::use_vignette("Wide_Long")
 
 
@@ -241,6 +241,115 @@ get_opt <- function(name = NULL, type = NULL) {
 
   opt
 }
+
+
+#' Add functions to the options.
+#' 
+#' The added function is also tested for functionality.
+#'
+#' @param fun character. name of the function
+#'
+#' @returns nix
+#' @export
+#'
+#' @examples
+#' 
+#' # init_stp25_options()
+#' 
+#' n_mean_sd <- function(x, digits, n,  ...) {
+#'  if( is.na(digits)  ) digits <- 2
+#'  data.frame(
+#'   lev = c("   n", "   mean", "   sd"),
+#'   n = c(as.character(n), "", ""),
+#'   m = c(
+#'     length(x),
+#'     render_f(mean(x, na.rm = TRUE), digits),
+#'     render_f(sd(x, na.rm = TRUE), digits)
+#'   )
+#'  )
+#' }
+#'  
+#' 
+#' add_fun_opt("n_mean_sd")
+#'  
+#'  get_opt("measure_fun")
+#'  
+#' # DF |>
+#' #  Tbll_desc(
+#' #    glucose,
+#' #    harnstoff[n_mean_sd],
+#' #    by = ~group
+#' #  )
+add_fun_opt <- function(fun = "fun") {
+  measure_fun <- list()
+  measure_fun[[fun]] <- fun
+  measure <- list()
+  measure[[fun]] <- fun
+  old <- getOption("stp25.options")
+  options(stp25.options = utils::modifyList(old, list(
+    measure_fun = measure_fun, measure = measure
+  )))
+  fun_num <- try(suppressWarnings(do.call(
+    fun,
+    list(
+      1:4,
+      digits = 1,
+      n = 4,
+      useNA = FALSE,
+      max_factor_length = 20,
+      use.level = 1
+    )
+  )), silent = TRUE)
+  
+  fun_fct <- try(suppressWarnings(do.call(
+    fun,
+    list(
+      factor(1:4),
+      digits = 1,
+      n = 4,
+      useNA = FALSE,
+      max_factor_length = 20,
+      use.level = 1
+    )
+  )), silent = TRUE)
+  
+  fun_log <- try(suppressWarnings(do.call(
+    fun,
+    list(
+      c(TRUE, FALSE, TRUE),
+      digits = 1,
+      n = 4,
+      useNA = FALSE,
+      max_factor_length = 20,
+      use.level = 1
+    )
+  )), silent = TRUE)
+  
+  # Test der Funktion
+  if (!inherits(fun_num, "try-error")) {
+    if(all(names(fun_num) == c("lev", "n",   "m")))   
+      cat(paste0("\nFunktion '", fun, "' mit numeric getestet, und alles OK!\n"))
+    else 
+      cat(paste0("\nFunktion '", fun, "'muss einen data.frame(lev, n, m) zurueckgeben!\n"))
+  }
+  else if (!inherits(fun_fct, "try-error")) {
+    if(all(names(fun_fct) == c("lev", "n",   "m")))   
+      cat(paste0("\nFunktion '", fun, "' mit factor getestet, und alles OK!\n"))
+    else 
+      cat(paste0("\nFunktion '", fun, "'muss einen data.frame(lev, n  m) zurueckgeben!\n"))
+    
+  }
+  else if (!inherits(fun_log, "try-error"))  {
+    if(all(names(fun_log) == c("lev", "n",   "m")))   
+      cat(paste0("\nFunktion '", fun, "' mit logical getestet, und alles OK!\n"))
+    else 
+      cat(paste0("\nFunktion '", fun, "'muss einen data.frame(lev, n, m) zurueckgeben!\n"))
+  }
+  else{
+    stop("\nFunktion '", fun, "' funktioniert nicht!!!!\n")
+  }
+}
+
 
 stp25.options <- function(...) {
   new <- list(...)
@@ -533,3 +642,21 @@ utils::globalVariables(c(
 
 
 ))
+
+
+
+
+# consort_plot_N <- function (x = NULL)
+# {
+#   if (exists("consort_plot_N", .stp25output2)) {
+#     if (is.null(x)) {
+#       get("consort_plot_N", .stp25output2)
+#     }
+#     else{
+#       assign("consort_plot_N", x, envir = .stp25output2)
+#       x
+#     }
+#   }
+#   else
+#     0
+# }

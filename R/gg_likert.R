@@ -15,13 +15,19 @@
 #' @param width,border Proprieties of the bars with: numeric width of bars (0-1), border: color
 #' @param wrap Numeric width for wrapping item labels
 #' @param palette Character color palette name
+#'   [ggplot2::scale_fill_brewer()]. Standard `"BrBG"`.
+#'   
+#'   - Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
+#'   - Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
+#'   - Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd
+#' 
 #' @param direction Numeric direction for color palette (1 or -1)
 #' @param item_levels Character vector for renaming item levels
 #' @param labels_size Numeric size for value labels
 #'
 #' @return A ggplot object
 #' @export
-#'
+#' @note Documentation created with assistance from ChatGPT.
 #' @examples
 #'
 #' #' require(ggstats)
