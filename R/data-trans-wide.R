@@ -12,7 +12,7 @@
 #'
 #' @return A tibble in wide format
 #' @export
-#'
+#' @note Documentation created with assistance from ChatGPT.
 #' @examples
 #' df <- data.frame(
 #'   month = rep(month.abb[1:3], 2),
@@ -52,11 +52,10 @@ Wide <- function(data,
   # Process key specification (formula or column name)
   specs <- handle_key_spec(key_expr, data, values_from)
 
-  print(  values_fill)
 
-if(is.null(specs$id_cols))
-rslt <-
-  tidyr::pivot_wider(
+ if(is.null(specs$id_cols))
+  rslt <-
+   tidyr::pivot_wider(
     data = specs$data,
     names_from = tidyselect::all_of(specs$names_from),
     values_from = tidyselect::all_of(values_from),
@@ -152,7 +151,7 @@ handle_key_spec <- function(key_expr, data, values_from) {
        #  id_cols <- formula_vars[1]      # First var is LHS
     } else {
       # One-sided formula (~x)
-       cat("\nin formula\n")
+      # cat("\nin formula\n")
       #print(  new_rhs <-  rlang::f_rhs(key_expr)   )
       names_from <-  all.vars(key_expr)
       id_cols <- NULL

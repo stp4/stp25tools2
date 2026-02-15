@@ -15,7 +15,7 @@
 #'
 #' @return A data frame in long format
 #' @export
-#'
+#' @note Documentation created with assistance from ChatGPT.
 #' @examples
 #' df <- data.frame(
 #'   month = rep(month.abb[1:3], 2),
@@ -55,17 +55,25 @@ Long.formula <- function(x,
   if (missing(data)) stop("data argument is required with formula input")
   if (!is.data.frame(data)) stop("data must be a data frame")
 
+ # cat("\nLong.formula\n")
+ # print(x)
+  
   # Handle formula with constant RHS (e.g., a + b + c ~ 1)
   if (length(x) == 3L && x[[3L]] == 1) x[[3L]] <- NULL
 
   # Process formula
   x <- expand_dot_formula(x, names(data))
-
-
+ # cat("\n expand_dot_formula ")
+ # print(x)
   rhs_vars <- all.vars(x[-3]) # Right-hand side variables
   lhs_vars <- all.vars(x[-2]) # Left-hand side variables
  # cat("\ndata\n")
-
+ # cat("\n rhs_vars: ")
+ # print(rhs_vars)
+ # cat("\n lhs_vars: ")
+ # print(lhs_vars)
+  
+ # cat("\n\n")
   # Select relevant columns
   data <- data[unique(c(rhs_vars, lhs_vars))]
 
@@ -177,7 +185,7 @@ Long.data.frame <- function(x,
   if (length(unique(measure_vars)) != length(measure_vars)) {
     stop("Duplicate measure variables detected")
   }
-  # cat("\nData:\n")
+ #  cat("\nData:\n")
   # print(unique(c(measure_vars, id.vars)))
   # print(names(x))
   # Select relevant columns
