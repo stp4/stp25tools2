@@ -83,6 +83,16 @@
 #'   #+ scale_fill_discrete(limits = c(TRUE, FALSE))
 #' )
 #' 
+#' # DF |>
+#' # Tbll_multi(
+#' #   "Soda (gas)",q2.almdd,q2.minrl,q2.cola,
+#' #   "Alkohol",q2.bier,q2.wein,
+#' #   by =  ~ sex) |>
+#' #   Output2() |>
+#' #   gg_stacked(DF)
+#' 
+#' 
+#' 
 #' @seealso [ggplot2::geom_bar()], [tidytext::reorder_within()]
 #' @export
 gg_stacked <- function(data,
@@ -106,20 +116,23 @@ gg_stacked <- function(data,
                        item_levels = NULL,
                        include.total = TRUE) {
   
-  if(!is.null( attr(data, "tbll_likert") )) {
-     cat("\n Hier kommt ein Tbll_multi() \n")
-    data <- attr(attr(data, "tbll_likert"), "data_long")
-  }
-
-  # Total in der ersten Spalte entfernen
-  if(!is.null(facet_formula)  &  !include.total ){
-    g_var<- all.vars(facet_formula)[1L]
-    if(levels(data[[g_var ]])[1L] == "Total"){
-     which_total <- data[[g_var]] == "Total"
-     data <- data[!which_total,]
-     }
+  if (!is.null(attr(data, "tbll_likert"))) {
+    cat("\nAha - Hier kommt ein Tbll_multi() \n")
+    data <-  attr(data, "tbll_likert")
+    if (is.null(facet_formula))
+      facet_formula <-  attr(data, "tbll")$facet_formula
+    data <- attr(data, "data_long")
   }
   
+  # Total in der ersten Spalte entfernen
+  if (!is.null(facet_formula)  &  !include.total) {
+    g_var <- all.vars(facet_formula)[1L]
+    if (levels(data[[g_var]])[1L] == "Total") {
+      which_total <- data[[g_var]] == "Total"
+      data <- data[!which_total, ]
+    }
+  }
+ 
   # Capture dot-dot-dot arguments
   dots <- rlang::enquos(...)
   

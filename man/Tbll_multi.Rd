@@ -140,6 +140,21 @@ DF <-
 
 DF$sex <- factor(c(1,1,1,1,1,1,1,2,2,2,2,2,2,2,2),
                  1:2, c("f", "m"))
+                 
+#'                  
+DF |>
+  Tbll_multi(
+    "Soda (gas)",q2.almdd,q2.minrl,q2.cola,
+    "Alkohol",q2.bier,q2.wein,
+    by =  ~ sex) |>
+  Output2() |>
+  gg_stacked(DF) +
+  theme(legend.position="none") # + 
+# scale_fill_discrete(limits = c(TRUE, FALSE))           
+                  
+                 
+                 
+                 
 
 # DF |> aggregat_likert(~ q2.almdd+q2.minrl+q2.cola+q2.bier+q2.wein,
 #                       type.wide=TRUE)

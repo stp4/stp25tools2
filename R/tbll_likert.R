@@ -86,8 +86,12 @@
 #'     include.total = TRUE,
 #'     include.n = TRUE,
 #'     include.na = TRUE,
-#'     include.mean = TRUE)
-
+#'     include.mean = TRUE,
+#'     reverse.levels = TRUE
+#'   ) |>
+#'   # Output() |>
+#'   gg_likertplot( )
+#'   
 Tbll_likert  <-
   function(x,
            ...,

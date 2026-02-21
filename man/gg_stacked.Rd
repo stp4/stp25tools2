@@ -134,6 +134,16 @@ cowplot::plot_grid(
   #+ scale_fill_discrete(limits = c(TRUE, FALSE))
 )
 
+# DF |>
+# Tbll_multi(
+#   "Soda (gas)",q2.almdd,q2.minrl,q2.cola,
+#   "Alkohol",q2.bier,q2.wein,
+#   by =  ~ sex) |>
+#   Output2() |>
+#   gg_stacked(DF)
+
+
+
 }
 \seealso{
 [ggplot2::geom_bar()], [tidytext::reorder_within()]

@@ -431,7 +431,11 @@ data_to_sum  <- function(...,
           x <- factor(x == levels(x)[use.level], c(TRUE, FALSE))
         }
         else if (reverse.levels) {
-          x <- rev(x)
+         # cat("\nreverse.levels\n")
+        #  print(x)
+          x <- factor(x, rev(levels(x)))
+        #  print(x)
+          
         }
         else if (!is.na(reorder.levels)) {
           if (is.numeric(reorder.levels))
