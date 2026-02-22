@@ -117,7 +117,7 @@ gg_stacked <- function(data,
                        include.total = TRUE) {
   
   if (!is.null(attr(data, "tbll_likert"))) {
-    cat("\nAha - Hier kommt ein Tbll_multi() \n")
+   # cat("\nAha - Hier kommt ein Tbll_multi() \n")
     data <-  attr(data, "tbll_likert")
     if (is.null(facet_formula))
       facet_formula <-  attr(data, "tbll")$facet_formula
@@ -246,11 +246,10 @@ gg_stacked <- function(data,
   }
   
   
-cat("\nCreate base plot\n")  
-
-print(head(data))
-cat("\nMapping\n")  
-print(mapping)
+#cat("\nCreate base plot\n")  
+#print(head(data))
+#cat("\nMapping\n")  
+#print(mapping)
 
   
   # Create base plot
@@ -440,7 +439,7 @@ calc_weight <- function(x,
     #Flip weights if decreasing is FALSE
     if (!orientation_left) {
       m_weight <- m_weight * (-1)
-      cat("\nm_weight decreasing\n")
+    #  cat("\nm_weight decreasing\n")
     }
   } else {
     # Simple sequential weights normalized by sum

@@ -125,6 +125,6 @@ DF_lik |>
     reverse.levels = TRUE
   ) |>
   # Output() |>
-  gg_likertplot( )
-  
+  gg_likertplot( include.order = TRUE ) + scale_fill_likert("BlRd")
+#'   
 }

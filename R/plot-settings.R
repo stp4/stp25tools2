@@ -567,7 +567,7 @@ brewer_pal2<- function(n,
   my_color <-
     switch(
       name,
-      Reds = switch(
+  Reds = switch(
         n,
         rgb(
           c( 252),
@@ -623,14 +623,9 @@ brewer_pal2<- function(n,
           c(240, 210, 161, 114,  74,  44, 29, 21, 13),
           maxColorValue = 255
         )
-      )
-
-
-      ,
-
-
-
-      Blues = switch(
+      ),
+      
+  Blues = switch(
         n ,
         rgb(
           c(158),
@@ -696,12 +691,8 @@ brewer_pal2<- function(n,
           maxColorValue = 255
         )
       ),
-
-
-
-
-
-      Greens = switch(
+  
+Greens = switch(
         n,
         rgb(
           c(161),
@@ -760,7 +751,7 @@ brewer_pal2<- function(n,
       ),
 
 
-      Greys = switch(
+  Greys = switch(
         n,
         rgb(c(189),
             c(189),
@@ -814,7 +805,7 @@ brewer_pal2<- function(n,
 
 
 
-      Oranges = switch(
+ Oranges = switch(
         n ,
         rgb(
           c(253),
@@ -873,7 +864,7 @@ brewer_pal2<- function(n,
       ),
 
 
-      Purples = switch(
+  Purples = switch(
         n,
         rgb(
           c( 188 ),

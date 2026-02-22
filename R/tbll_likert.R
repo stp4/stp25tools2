@@ -43,11 +43,11 @@
 #' require(dplyr)
 #' require(tibble)
 #' set.seed(42)
-#'
+#' 
 #' levels <- c(
 #'   "Strongly disagree", "Disagree", "Neither agree nor disagree",
 #'   "Agree", "Strongly agree")
-#'
+#' 
 #' n <- 2*3*9*3
 #' DF_lik <- tibble(
 #'   q1 = sample(levels, n, replace = TRUE, prob = c(3,2, 1, 4,5)),
@@ -63,16 +63,16 @@
 #'   mutate(across(everything(), ~ factor(.x, levels = levels))) |>
 #'   mutate(Sex = factor(sample(c("male", "female"), n, replace = TRUE)),
 #'          Age = factor(sample(c("18-30", "30-50", ">50"), n, replace = TRUE)))
-#'
+#' 
 #' # Basic usage:
 #' DF_lik |>
 #'   Summarise_likert(q1, q2, q3, q4, by = ~ Sex) |>
 #'   Tbll_likert()
-#'
+#' 
 #' # With ordering
 #' DF_lik |>
 #'   Tbll_likert(q1, q2, q3, q4, by = ~ Sex, include.order = TRUE)
-#'
+#' 
 #' # Using reference groups
 #' DF_lik |>
 #'   Tbll_likert(
@@ -90,8 +90,8 @@
 #'     reverse.levels = TRUE
 #'   ) |>
 #'   # Output() |>
-#'   gg_likertplot( )
-#'   
+#'   gg_likertplot( include.order = TRUE ) + scale_fill_likert("BlRd")
+#' #'   
 Tbll_likert  <-
   function(x,
            ...,
