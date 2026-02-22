@@ -35,43 +35,39 @@
 #' Rbind2(df1, df2, df3)
 #'
 #' @export
-Rbind2 <- 
+Rbind2 <-
   function (...,
-                    .id = "which",
-                    .names = NULL,
-                    .use.label = TRUE,
-                    include.rownames = FALSE) {
-  data <- dplyr::bind_rows(..., .id = .id)
-  return(data)
-  if (include.rownames)   {
-    data <- cbind(data[1], 
-                  Source =  sub("(.*).....*", "\\1", rownames(data)), 
-                  data[-1])
-  }
-  
-  if (!is.null(.id)) {
-    tmp <- list(...)
-    if (is.null(.names))
-      .names <- names(tmp)
-    
-    if (is.null(.names))
-      .names <- sapply(as.list(match.call()), deparse)[-1]
-    
-    data[[1]] <- factor(data[[1]], 
-                        seq_along(.names), 
-                        .names)
-  }
-  
-  if (.use.label) {
-    label <- c(.id)
-    names(label) <- .id
-    for (dat in list(...)) {
-      lbl <-  get_label(dat)
-      label <-
-        append(label, lbl[setdiff(names(lbl), names(label))])
-      data <- set_label(data, label)
+            .id = "which",
+            .names = NULL,
+            .use.label = TRUE,
+            include.rownames = FALSE) {
+    data <- dplyr::bind_rows(..., .id = .id)
+
+    if (include.rownames)   {
+      data <- cbind(data[1], Source =  sub("(.*).....*", "\\1", rownames(data)), data[-1])
     }
+    
+    if (!is.null(.id)) {
+      tmp <- list(...)
+      if (is.null(.names))
+        .names <- names(tmp)
+      
+      if (is.null(.names))
+        .names <- sapply(as.list(match.call()), deparse)[-1]
+      
+      data[[1]] <- factor(data[[1]], seq_along(.names), .names)
+    }
+    
+    if (.use.label) {
+      label <- c(.id)
+      names(label) <- .id
+      for (dat in list(...)) {
+        lbl <-  get_label(dat)
+        label <-
+          append(label, lbl[setdiff(names(lbl), names(label))])
+        data <- set_label(data, label)
+      }
+    }
+    
+    data
   }
-  
-  data
-}
