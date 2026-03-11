@@ -106,7 +106,7 @@ use_codebook <-
       cat("\n(1)\nUse data from file", file, "\n")
       data <-
         readxl::read_excel(file, sheet = sheet.data)
-      print(head(data))
+     # print(head(data))
     } else{
       cat("\n(1)\nI am using the provided data.\n")
       print(deparse(substitute(data)))
@@ -143,7 +143,12 @@ use_codebook <-
     names(label) <- cdbk[[names]]
     
     if (!is.null(value.labels)) {
+      
       cat("\n(3) I am going to work on the factors (value.labels)\n")
+      print(cdbk[[value.labels]])
+      cat("????\n")
+      
+      
       for (i in grep("factor\\: ", cdbk[[value.labels]])) {
         fct <- cdbk[[value.labels]][i]
         fct <- gsub("factor\\: ", "", fct)
@@ -195,7 +200,8 @@ use_codebook <-
     }
     cat("\n\n(4) \nI am in the process of label restoration.\n")
     
-    set_label(data, label)
+   # leehre Labels entfernen
+    set_label(data, label[-which(is.na(label) | label == "")])
   }
 
 
