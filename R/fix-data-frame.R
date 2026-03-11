@@ -278,6 +278,8 @@ capture_print <- function(x,
 }
 
 
+
+
 #' @rdname fix_to_df
 #' @export
 fix_to_df.default <- function(x, ...) {
@@ -434,7 +436,7 @@ fix_to_df.vector <- function(x, ...) {
 #' @export
 fix_to_df.ftable <-
   function(x,
-           dim_x = dimension(x),
+           dim_x = dimension_fix(x),
            atrb = attributes(x),
            ...) {
     if (dim_x > 1) {
@@ -469,6 +471,7 @@ fix_to_df.ftable <-
 
 
 #' @rdname fix_to_df
+#' 
 #' @export
 #' @examples
 #'
@@ -509,14 +512,18 @@ fix_to_df.ftable <-
 #' #   Wide(induced  +  case ~education )
 #' fix_to_df(tab_3x2x3)
 #'
-fix_to_df.table <- function(x, dim_x = dimension(x), ...) {
+fix_to_df.table <- function(x, dim_x = dimension_fix(x), ...) {
+  
+  cat("in fix_to_df.table\n")
   if (dim_x  > 1)
     fix_to_df.ftable(stats::ftable(x), dim_x=dim_x, ...)
   else
     fix_to_df.ftable(x, dim_x=dim_x, ...)
 }
 
-dimension <- function(x) {
+
+#' @noRd
+dimension_fix <- function(x) {
   dm <- dim(x)
   ldm <-  length(dm)
   if (ldm == 1) 1
@@ -525,6 +532,6 @@ dimension <- function(x) {
   else ldm+1
 }
 
-
+#xtabs( ~ induced2 + case, infert)  |> fix_to_df.table()
 
 
