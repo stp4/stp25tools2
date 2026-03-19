@@ -294,6 +294,58 @@ APA.ScalarIndependenceTest <- function(x,
 APA.numeric <- function(x, ...)
   calc_mean(x, ...)
 
+
+
+
+
+#' @rdname APA
+#' @export
+Mean <- function(x, digits =
+                   get_opt("mean", "digits")) {
+  calc_mean(x, digits = digits)
+  
+}
+
+#' @rdname APA
+#' @export
+Median <- function(x, digits = get_opt("median", "digits")) {
+  calc_median(x, digits = digits)
+}
+
+#' @rdname APA
+#' @export
+Count <- function(x, sep = ", and ", ...) {
+  out <- calc_percent(x, digits = 0, style = 4)
+  parts <- paste(out, names(out), sep = " ")
+  paste0(paste(parts[-length(parts)], collapse = ", "), sep, parts[length(parts)])
+}
+
+#' @rdname APA
+#' @export
+#' @examples
+#' g <- gl(3, 8, labels = c("Omnivor", "Vegetarian", "Vegan"))
+#' 
+#' x <- 1:20
+#' Mean(x)
+#' Median(x)
+#' 
+#' Count(g)
+#' Percent(g)
+Percent <- function(x,
+                    style = get_opt("percent", "style"),
+                    sep = ", and ",
+                    ...) {
+  out <- calc_percent(x, digits = 0, style = style)
+  parts <- paste(out, names(out), sep = " ")
+  paste0(paste(parts[-length(parts)], collapse = ", "), sep, parts[length(parts)])
+  
+}
+
+
+
+
+
+
 # @rdname APA
 # @export
 #APA.factor <- function(x,...) Prozent(...)
@@ -402,54 +454,45 @@ APA.numeric <- function(x, ...)
 
 
 
-#' @rdname APA
-#'
-#' @description Percent:  Ausgabe für den Text
-#'
-#' @param x Objekt
-#' @param style Aussehen
-#'
-#' @returns character
-#' @export
-#'
-#' @examples
-#'
-#' Percent("12 (18%)", 3)
-#' Percent(c(TRUE, TRUE, TRUE, TRUE, FALSE))
-#' Percent(c(1, 0, 0, 0, 1, 0), 1)
-#'
-Percent <- function(x, style = 2) {
-  prz <- "Error"
-  if (tibble::is_tibble(x)) {
-    x <- as.vector(x[[1]])
-    prz <-  strsplit(x, " ")[[1]][get_opt("percent", "style")]
-    if (style == 3)
-      prz <- gsub("[\\(\\)]", "", prz)
-  }
-  else if (is.character(x)) {
-    prz <-  strsplit(x[1], " ")[[1]][get_opt("percent", "style")]
-    if (style == 3)
-      prz <- gsub("[\\(\\)]", "", prz)
-  }
-  else {
-    anz <- table(x)
-    prz <- round(prop.table(anz) * 100)
-    if (is.logical(x)) {
-      prz <-  prz[2]
-      anz <-  anz[2]
-    }
-    if (style == 1) {
-      prz <- paste0(anz, " (", prz, "%)")
-    }
-    else if (style == 2) {
-      prz <- paste0("(", prz, "%)")
-    }
-    else if (style == 3) {
-      prz <- paste0(prz, "%")
-    }
-  }
-  prz
-}
+
+
+
+
+
+
+
+# Percent <- function(x, style = 2) {
+#   prz <- "Error"
+#   if (tibble::is_tibble(x)) {
+#     x <- as.vector(x[[1]])
+#     prz <-  strsplit(x, " ")[[1]][get_opt("percent", "style")]
+#     if (style == 3)
+#       prz <- gsub("[\\(\\)]", "", prz)
+#   }
+#   else if (is.character(x)) {
+#     prz <-  strsplit(x[1], " ")[[1]][get_opt("percent", "style")]
+#     if (style == 3)
+#       prz <- gsub("[\\(\\)]", "", prz)
+#   }
+#   else {
+#     anz <- table(x)
+#     prz <- round(prop.table(anz) * 100)
+#     if (is.logical(x)) {
+#       prz <-  prz[2]
+#       anz <-  anz[2]
+#     }
+#     if (style == 1) {
+#       prz <- paste0(anz, " (", prz, "%)")
+#     }
+#     else if (style == 2) {
+#       prz <- paste0("(", prz, "%)")
+#     }
+#     else if (style == 3) {
+#       prz <- paste0(prz, "%")
+#     }
+#   }
+#   prz
+# }
 # Percent("12 (18%)", 3)
 # Percent(c(T, T, T, T, F))
 # Percent(c(1, 0, 0, 0, 1, 0), 1)
