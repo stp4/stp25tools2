@@ -32,9 +32,9 @@ fix_to_tibble(x, ...)
 
 \method{fix_to_df}{vector}(x, ...)
 
-\method{fix_to_df}{ftable}(x, dim_x = dimension(x), atrb = attributes(x), ...)
+\method{fix_to_df}{ftable}(x, dim_x = dimension_fix(x), atrb = attributes(x), ...)
 
-\method{fix_to_df}{table}(x, dim_x = dimension(x), ...)
+\method{fix_to_df}{table}(x, dim_x = dimension_fix(x), ...)
 }
 \arguments{
 \item{x}{Objekt}

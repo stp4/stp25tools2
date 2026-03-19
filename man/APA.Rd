@@ -16,6 +16,9 @@
 \alias{APA.QuadTypeIndependenceTest}
 \alias{APA.ScalarIndependenceTest}
 \alias{APA.numeric}
+\alias{Mean}
+\alias{Median}
+\alias{Count}
 \alias{Percent}
 \title{Text-Ausgabe von Tests}
 \usage{
@@ -51,26 +54,26 @@ APA(x, ...)
 
 \method{APA}{numeric}(x, ...)
 
-Percent(x, style = 2)
+Mean(x, digits = get_opt("mean", "digits"))
+
+Median(x, digits = get_opt("median", "digits"))
+
+Count(x, sep = ", and ", ...)
+
+Percent(x, style = get_opt("percent", "style"), sep = ", and ", ...)
 }
 \arguments{
-\item{x}{Objekt}
+\item{x}{Objekt fit, formula usw}
 
 \item{...}{digits, data, usw}
 
 \item{include.r}{APA.lm: R-Squar}
-
-\item{style}{Aussehen}
 }
 \value{
 Character Vector mit einem oder meheren Eintraegen
-
-character
 }
 \description{
 Ausgabe von APA-Style formatiertem Text.
-
-Percent:  Ausgabe für den Text
 }
 \examples{
 
@@ -123,9 +126,12 @@ APA(fisher.test(TeaTasting, alternative = "greater"))
 # APA(xt <- chisq_test(davis))
 # APA(wt)
 
+g <- gl(3, 8, labels = c("Omnivor", "Vegetarian", "Vegan"))
 
-Percent("12 (18\%)", 3)
-Percent(c(TRUE, TRUE, TRUE, TRUE, FALSE))
-Percent(c(1, 0, 0, 0, 1, 0), 1)
+x <- 1:20
+Mean(x)
+Median(x)
 
+Count(g)
+Percent(g)
 }
