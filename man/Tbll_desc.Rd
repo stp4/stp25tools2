@@ -168,7 +168,7 @@ DF |>
     bmi[median,2],
     "Labor",
     glucose[0],
-    harnstoff[fun],
+    harnstoff[fun,2],
     crp[multi],
     by = ~group
   )

@@ -138,7 +138,7 @@
 #'     bmi[median,2],
 #'     "Labor",
 #'     glucose[0],
-#'     harnstoff[fun],
+#'     harnstoff[fun,2],
 #'     crp[multi],
 #'     by = ~group
 #'   )
@@ -395,6 +395,13 @@ make_tbll_desc <-
 
       
       for (i in names(data)) {
+        
+        # print(list(x = head(data[[i]]),
+        #            digits = X$digits,
+        #            measure = X$measure,
+        #            row_name = X$row_name,
+        #            use.level = use.level))
+        
         tbl_part_i <-
           list_rbind(purrr::pmap(
             list(
