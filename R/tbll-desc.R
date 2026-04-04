@@ -158,6 +158,21 @@
 #' )
 #'
 #' ## -----------------------------------------------------------------------------
+#' 
+#' #' cohens_d
+#' cohens_d <- function(x, by, ...) {
+#'   d <- NULL
+#'   if (is.numeric(x)) {
+#'     dat <- data.frame(x = x, by = by)
+#'     d <- effectsize::cohens_d(x ~ by)
+#'     render_f(d[[1]], 1)[1]
+#'   }
+#'   else {
+#'     ""
+#'   }
+#' }
+#' 
+#' 
 #' DF |>
 #' Tbll_desc(
 #'   glucose[0],
@@ -165,11 +180,7 @@
 #'   by = ~ group,
 #'   include.total = TRUE,
 #'   include.test = TRUE,
-#'   include.custom = function(x, by, ...) {
-#'     #dat <- data.frame(x = x, by = by)
-#'     d <- effectsize::cohens_d(x ~ by)
-#'     round(d, 2)[1]
-#'   }
+#'   include.custom = cohens_d
 #' )
 #'
 #'
@@ -552,7 +563,7 @@ make_tbll_desc <-
  # print(rslt_all)
     # Signifikanz Test
     if (include.test) {
-      cat("\ninclude.test\n")
+    #  cat("\ninclude.test\n")
       cattest <- get_opt("test_fun_cattest")
       contest <- get_opt("test_fun_contest")
       note <- paste(note, ". Test Statistic:", sep = "")
@@ -566,7 +577,7 @@ make_tbll_desc <-
           formula(paste(X$measure.vars[i], "~", X$group.vars[1]))
         
         if (X$measure.test[i] == "notest") {
-          cat("\n ", i, " notest\n")
+        #  cat("\n ", i, " notest\n")
           rslt_test <- append(rslt_test, "no-test")
         }
         else if (X$measure.test[i] == "contest") {
@@ -707,7 +718,9 @@ make_tbll_desc <-
       }
     }
     
-    rslt_all[[1]] <- paste(rslt_all[[1]], rslt_all[[2]])
+    #print( rslt_all )
+    
+    rslt_all[[1]] <- paste0(rslt_all[[1]], rslt_all[[2]])
     rslt_all <- names_option(rslt_all[-2])
     
     if(!return.data.frame) {
@@ -1039,6 +1052,8 @@ multi_tbll <- function(x,
 
   if (!include.level)
     res$lev <- ""
+  else
+    res$lev <- paste0(" (", res$lev, ")")
 
   res[1, ]
 }

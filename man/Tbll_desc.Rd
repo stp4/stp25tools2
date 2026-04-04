@@ -188,6 +188,21 @@ Tbll_desc(
 )
 
 ## -----------------------------------------------------------------------------
+
+#' cohens_d
+cohens_d <- function(x, by, ...) {
+  d <- NULL
+  if (is.numeric(x)) {
+    dat <- data.frame(x = x, by = by)
+    d <- effectsize::cohens_d(x ~ by)
+    render_f(d[[1]], 1)[1]
+  }
+  else {
+    ""
+  }
+}
+
+
 DF |>
 Tbll_desc(
   glucose[0],
@@ -195,11 +210,7 @@ Tbll_desc(
   by = ~ group,
   include.total = TRUE,
   include.test = TRUE,
-  include.custom = function(x, by, ...) {
-    #dat <- data.frame(x = x, by = by)
-    d <- effectsize::cohens_d(x ~ by)
-    round(d, 2)[1]
-  }
+  include.custom = cohens_d
 )
 
 
