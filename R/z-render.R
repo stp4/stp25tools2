@@ -277,7 +277,7 @@ format_guess <- function(x) {
   }
 }
 
-#' @keywords internal
+
 #' Fuerende Null eliminieren
 #' drop_0_leading("0,25689", ",")
 #' @noRd

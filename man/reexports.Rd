@@ -13,6 +13,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{car}{\code{\link[car:Contrasts]{contr.Helmert}}, \code{\link[car:Contrasts]{contr.Sum}}, \code{\link[car:Contrasts]{contr.Treatment}}}
+  \item{car}{\code{\link[car:contr.Helmert]{contr.Helmert()}}, \code{\link[car:contr.Sum]{contr.Sum()}}, \code{\link[car:contr.Treatment]{contr.Treatment()}}}
 }}
 

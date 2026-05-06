@@ -29,7 +29,6 @@
 #' @importFrom stringr str_starts
 #' @importFrom purrr map2
 #' @importFrom dplyr bind_cols
-#' @importFrom stp25tools fix_to_tibble
 #'
 #' @returns A tbble data.frame the same length as the input.
 #'
@@ -76,7 +75,7 @@ fix_format <- function(x, ...) {
   UseMethod("fix_format")
 }
 
-
+## @importFrom stp25tools fix_to_tibble
 
 #' @export
 fix_format.default <- function(x,
@@ -90,8 +89,9 @@ fix_format.default <- function(x,
                                  "pvalue"),
                                se = c("Std\\. Error", "est.std"),
                                df = c("N", "Df")) {
+  #stp25tools:
   x <-
-    stp25tools::fix_to_tibble(
+    fix_to_tibble(
       x,
       include.rownames = include.rownames)
   data_names <- names(x)
@@ -158,8 +158,9 @@ fix_format.list <-
 fix_format2 <-  function(x,
                          digits = NULL,
                          include.rownames = TRUE) {
+  # stp25tools::
   x <-
-    stp25tools::fix_to_tibble(x,
+    fix_to_tibble(x,
                               include.rownames = include.rownames)
   
   stp25tools:::dapply1(x, function(xx) {

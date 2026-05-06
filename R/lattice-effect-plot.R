@@ -261,13 +261,14 @@ plot2 <- function(...) {
 
 
 #' @rdname plot_effect
+#' @export
 plot2.default <- function(...) {
   plot(...)
 }
 
 
 #' @rdname plot_effect
-#' 
+#' @export
 plot2.efflist <-
   function (x,
             main = NULL,
