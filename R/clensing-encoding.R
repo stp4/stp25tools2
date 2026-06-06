@@ -1,3 +1,46 @@
+#' Zeichensalat
+#' 
+#' Ersetzt alle vorkommenden Muster im Vektor Brute-Force
+#' 
+#' 
+#' @param x character string
+#' @param mapping Map der typischen UTF-8-als-Latin1-Fehlinterpretationen
+#'
+#' @returns character
+#' @export
+#'
+#' @examples
+#' 
+#' dat <- data.frame(x = 1:3,
+#' txt = c("TÃ¤tigkeit", "PrioritÃ¤ten" , "keine MÃ¶glichkeit"))
+#' 
+#' fix_sosci_mojibake(dat$txt)
+#' dapply2(dat, fix_sosci_mojibake)
+#' 
+fix_sosci_mojibake <- function(x,
+                               mapping = c(
+                                 "TÃ¤" = "Tä",
+                                 "Ã¤"  = "ä",
+                                 "Ã¶"  = "ö",
+                                 "Ã¼"  = "ü",
+                                 "Ã„"  = "Ä",
+                                 "Ã–"  = "Ö",
+                                 "Ãœ"  = "Ü",
+                                 "ÃŸ"  = "ß"
+                               )) {
+  if (is.character(x)) {
+    stringr::str_replace_all(x, mapping)
+  }
+  else {
+    x
+  }
+  
+}
+
+
+
+
+
 clnsng <- function(x) {
   x <- gsub("\u00e4", "ae", x)
   x <- gsub("\u00fc", "ue", x)
