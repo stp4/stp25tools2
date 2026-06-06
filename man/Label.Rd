@@ -2,11 +2,20 @@
 % Please edit documentation in R/label.R
 \name{Label}
 \alias{Label}
+\alias{delet_label}
+\alias{set_label}
+\alias{get_label}
 \alias{trimm_label}
 \alias{gsub_label}
 \title{Label}
 \usage{
 Label(data, ...)
+
+delet_label(data)
+
+set_label(data, label = NULL)
+
+get_label(data, ...)
 
 trimm_label(data, pattern = "\\\\.\\\\.\\\\. ", pos = 2)
 
@@ -17,12 +26,22 @@ gsub_label(data, pattern = "\\\\&amp;", replacement = "&")
 
 \item{...}{label in der Form a="Hallo, b="Welt"}
 
+\item{label}{attribut label}
+
 \item{pattern, replacement}{Pattern to look for.}
 
 \item{pos}{an stringr::str_split_fixed}
 }
 \description{
 Setzen des attr(data, "label")
+
+Remove Variable Labels - returns the data frame with all variable labels removed
+
+set_label
+
+Get variable labels Returns A named vector of labels.
+
+trimm_label, gsub_label
 }
 \examples{
 
