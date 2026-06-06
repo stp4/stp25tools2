@@ -48,12 +48,11 @@ Label <- function(data, ...) {
   }
 }
 
-
-#' Remove Variable Labels
-#'
-#' @param data A data frame
-#' @return The data frame with all variable labels removed
+#' @rdname Label
+#' 
+#' @description Remove Variable Labels - returns the data frame with all variable labels removed
 #' @export
+#' 
 delet_label <- remove_label <- function(data) {
   for (n in names(data)) {
     attr(data[[n]], "label") <- NULL
@@ -62,11 +61,9 @@ delet_label <- remove_label <- function(data) {
 }
 
 
-
-#' set_label
-#'
-#'
-#' @param data data.frame
+#' @rdname Label
+#' 
+#' @description set_label
 #' @param label attribut label
 #' @export
 #'
@@ -88,11 +85,9 @@ set_label <- function(data, label = NULL) {
   data
 }
 
-
-#' Get variable labels
-#'
-#' @param data A data frame
-#' @return A named vector of labels
+#' @rdname Label
+#' 
+#' @description  Get variable labels Returns A named vector of labels.
 #' @export
 #'
 get_label <- function(data, ...) {
@@ -107,6 +102,7 @@ get_label <- function(data, ...) {
 }
 
 #' @rdname Label
+#' 
 #' @param pos an stringr::str_split_fixed
 #'
 #' @export
@@ -128,6 +124,8 @@ trimm_label <-
   }
 
 #' @rdname Label
+#' @description  trimm_label, gsub_label
+#' 
 #' @param pattern,replacement Pattern to look for.
 #'
 #' @export
