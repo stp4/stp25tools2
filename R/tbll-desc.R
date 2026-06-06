@@ -337,10 +337,26 @@ make_tbll_desc <-
     if (!include.label)
       X$row_name <- X$measure.vars
     
-    if (include.n & sum(any_missing_measure[X$measure!="header"] - X$N) == 0) {
-      # keine fehlenden dann nur erste Zeile mit N
+   
+
+    include_conbine_n_nr <- FALSE
+    if (include.n) {
+      any_miss <- any_missing_measure[X$measure!="header"]
+    #  cat("\n Total\n")
+    #  print( any_miss )
+     if( sum(any_miss - X$N) == 0){
+       # keine fehlenden dann nur erste Zeile mit N
+       include.n <- FALSE
+       include.nr <- TRUE
+     }
+      else if(length(unique.default(any_miss)) == 1) {
+      # quasi ein subsampel da alle gleich lang sind
+      # mit   h__1__h  funktioniert es noch nicht!
+        
       include.n <- FALSE
       include.nr <- TRUE
+      include_conbine_n_nr <- TRUE
+      }
     }
     
     if (include.multiresponse){
@@ -399,7 +415,7 @@ make_tbll_desc <-
      
       # Wenn die Gruppen leer sind factor-stufe entfernen
       freq_groups <- table(X$data[[X$group.vars]])
-      enpty_groups <- which(freq_groups == 0)
+      empty_groups <- which(freq_groups == 0)
       
       if(length(empty_groups) > 0) {
         X$data[[X$group.vars]] <- factor(
@@ -451,8 +467,11 @@ make_tbll_desc <-
     
     # 4. Anzahl entweder als Spalte oder als Singel-Zeile
     if (include.nr) {
-      
+      # wilder workaraund startet oben mit
+      # include_conbine_n_nr
+      if (!include_conbine_n_nr)  
       n.out <- c("(N)", rep("", ncol(rslt_all) - 1))
+      else n.out <- c("(N/n)", rep("", ncol(rslt_all) - 1))
       names(n.out) <- names(rslt_all)
       
       if (is.null(X$group.vars)) {
@@ -460,28 +479,37 @@ make_tbll_desc <-
       }
       else {
         tsum <- table(X$data[[X$group.vars]])
+        
         if (include.total) {
           n.out[stringr::str_ends(names(rslt_all), "_m")] <-
-            c(as.character(sum(tsum)),
-              as.character(tsum))
+            c(as.character(sum(tsum)), as.character(tsum))
         }
         else{
           n.out[stringr::str_ends(names(rslt_all), "_m")] <-
             as.character(tsum)
         }
+        
+        # nicht schoen aber es funktioniert
+        if (include_conbine_n_nr) {
+          length.out <- if (is.null(X$group.vars)) 1 else nlevels(X$data[[X$group.vars]]) + include.total
+          nnn <- unlist(rslt_all[1, (seq(from = 3,by = 2,length.out = length.out))])
+          n.out[stringr::str_ends(names(rslt_all), "_m")] <-
+            paste0(n.out[stringr::str_ends(names(rslt_all), "_m")], "/", nnn)
+        }
       }
       rslt_all <- rbind(n.out, rslt_all)
     }
     
+    
+    
+    
     if (!include.n) {
+      
       length.out <- if (is.null(X$group.vars)) 1
-      else nlevels(X$data[[X$group.vars]]) + include.total
+                    else nlevels(X$data[[X$group.vars]]) + include.total
       rslt_all <-
-        rslt_all[-(seq(
-          from = 3,
-          by = 2,
-          length.out = length.out
-        ))]
+        rslt_all[-(seq(from = 3, by = 2, length.out = length.out))]
+      
       names(rslt_all) <- gsub("_m$", "", names(rslt_all))
     }
     
