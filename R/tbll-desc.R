@@ -396,6 +396,17 @@ make_tbll_desc <-
       } else {
         caption <- X$group.vars
       }
+     
+      # Wenn die Gruppen leer sind factor-stufe entfernen
+      freq_groups <- table(X$data[[X$group.vars]])
+      enpty_groups <- which(freq_groups == 0)
+      
+      if(length(empty_groups) > 0) {
+        X$data[[X$group.vars]] <- factor(
+          X$data[[X$group.vars]], 
+          names(which(freq_groups > 0)))
+      }
+  
       
       data <- split(X$data[X$measure.vars], X$data[[X$group.vars]])
       if(any(sapply(data, lengths) == 0 )) {
@@ -777,7 +788,7 @@ prct_or_mean <- function(x,
     return(paste("Funktion", measure_fun, "nicht gefunden"))
   }
 
-  
+  # measure_fun ->  prct_tbll, median_tbll usw.
   res <- do.call(measure_fun,
                     list(x,
                          digits = digits,
@@ -785,8 +796,9 @@ prct_or_mean <- function(x,
                          useNA = useNA,
                          max_factor_length = max_factor_length,
                          use.level = use.level))
-  
-  
+#  cat("\n do.call -> measure_fun \n")
+ # print(measure_fun)
+#  print(res)
 
   if (nrow(res)>1) {
     x0 <- data.frame(
@@ -996,22 +1008,39 @@ prct_tbll <-
            max_factor_length = 25,
            style = get_opt("percent", "style"),
            ...)  {
-    if(length(x) == 0) return("NA")
+       # cat("\n prct_tbll \n" )
+   # print( length(x) )
+    #  print(x)
+    if (length(x) != 0) {
+  
+      
+      tbl <- calc_percent(
+        x,
+        digits = digits,
+        useNA = useNA,
+        max_factor_length = max_factor_length,
+        style = style
+      )
+      
+      data.frame(
+        lev = names(tbl),
+        n = c(n, rep("", length(tbl) - 1)),
+        m = tbl,
+        stringsAsFactors = FALSE
+      )
+      
+    } else {
+      # x besitz keine Werte
+      
+      #print(class(x))
+      data.frame(
+        lev = levels(x),
+        n = c(n, rep("", nlevels(x) - 1)),
+        m = NA,
+        stringsAsFactors = FALSE
+      )
 
-    tbl <- calc_percent(
-      x,
-      digits = digits,
-      useNA = useNA,
-      max_factor_length = max_factor_length,
-      style = style
-    )
-
-    data.frame(
-      lev = names(tbl),
-      n = c(n, rep("", length(tbl) - 1)),
-      m = tbl,
-      stringsAsFactors = FALSE
-    )
+    }
   }
 
 
@@ -1025,37 +1054,51 @@ multi_tbll <- function(x,
                        include.level = get_opt("percent", "include_level_multi"),
                        style = get_opt("percent", "style"),
                        ...) {
-
+ # cat("\n multi_tbll \n")
+  
   # wenn ein h__1__h kommt
-  if (is.character(x)) return(emty_tbll())
-
-  if (is.logical(x)) {
-    res <- prct_tbll(x, digits = digits, n = n)
-    res$lev <- "true"
-  } else if (is.factor(x)) {
-    res <- prct_tbll(ifelse(x == levels(x)[use.level], TRUE, FALSE),
-                     digits = digits,
-                     n = n)
-    res$lev <- levels(x)[use.level]
-  } else if (is.numeric(x)) {
-    res <- prct_tbll(ifelse(x == use.level, TRUE, FALSE),
-                     digits = digits,
-                     n = n)
-    res$lev <- use.level
+  if (is.character(x)) {
+    return(emty_tbll())
   }
-  else{
-    stop(
-      "multi_tbll(): Hier kommt eie unbekannter Vector class = ",
-      class(x)
+  
+  if (length(x) != 0) {
+    if (is.logical(x)) {
+      res <- prct_tbll(x, digits = digits, n = n)
+      res$lev <- "true"
+    }
+    else if (is.factor(x)) {
+      res <- prct_tbll(ifelse(x == levels(x)[use.level], TRUE, FALSE),
+                       digits = digits,
+                       n = n)
+      res$lev <- levels(x)[use.level]
+    }
+    else if (is.numeric(x)) {
+      res <- prct_tbll(ifelse(x == use.level, TRUE, FALSE),
+                       digits = digits,
+                       n = n)
+      res$lev <- use.level
+    }
+    else{
+      stop("multi_tbll(): Hier kommt eie unbekannter Vector class = ",
+           class(x))
+    }
+    
+    if (!include.level)
+      res$lev <- ""
+    else
+      res$lev <- paste0(" (", res$lev, ")")
+    
+    res[1, ]
+    
+  } else {
+    data.frame(
+      lev = if (!include.level) "" else paste0(" (", "true", ")"),
+      n = n,
+      m = NA,
+      stringsAsFactors = FALSE
     )
+    
   }
-
-  if (!include.level)
-    res$lev <- ""
-  else
-    res$lev <- paste0(" (", res$lev, ")")
-
-  res[1, ]
 }
 
 
