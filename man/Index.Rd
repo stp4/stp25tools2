@@ -12,7 +12,8 @@ Index(
   digits = 2,
   re_code = NULL,
   min_level = NA,
-  max_level = NA
+  max_level = NA,
+  na.strings = NULL
 )
 }
 \arguments{
@@ -38,7 +39,8 @@ werden sollen (z. B. für invertierte Items). Standard ist NULL.}
 wenn nicht angegeben.}
 
 \item{max_level}{Maximaler Skalenwert. Wird automatisch bestimmt,
-wenn nicht angegeben.}
+wenn nicht angegeben.
+@param na.strings numeric oder charachter level wie zb nicht ausgewaehlt}
 }
 \value{
 Ein numerischer Vektor mit dem berechneten Index.

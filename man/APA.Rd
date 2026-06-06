@@ -20,6 +20,9 @@
 \alias{Median}
 \alias{Count}
 \alias{Percent}
+\alias{Offen}
+\alias{Offen.data.frame}
+\alias{Offen.character}
 \title{Text-Ausgabe von Tests}
 \usage{
 APA(x, ...)
@@ -61,19 +64,33 @@ Median(x, digits = get_opt("median", "digits"))
 Count(x, sep = ", and ", ...)
 
 Percent(x, style = get_opt("percent", "style"), sep = ", and ", ...)
+
+Offen(x, ...)
+
+\method{Offen}{data.frame}(x, ..., by = NULL, caption = NULL, min_char = 4)
+
+\method{Offen}{character}(x, by = NULL, caption = NULL, min_char = 4)
 }
 \arguments{
-\item{x}{Objekt fit, formula usw}
+\item{x}{data.frame or character string}
 
-\item{...}{digits, data, usw}
+\item{...}{name der Variable}
 
 \item{include.r}{APA.lm: R-Squar}
+
+\item{by}{gruppierung als formula (noch nicht fertig)}
+
+\item{caption}{Ueberschrift}
+
+\item{min_char}{minimale anzahl an Character}
 }
 \value{
 Character Vector mit einem oder meheren Eintraegen
 }
 \description{
 Ausgabe von APA-Style formatiertem Text.
+
+Offen(): Open question (text input)
 }
 \examples{
 
@@ -134,4 +151,19 @@ Median(x)
 
 Count(g)
 Percent(g)
+ 
+ 
+DF <- structure(
+  list(q10.other = structure(
+    c("Elektrolyte,LFP,Kreatinin, Amylase", 
+    "--", "nix", "O2 Sättigung", "x", "", "", "", "", "Adenovirus, Harnsäure,", 
+    "", "Hämocult", "", "", "", "", "", "", "Harnmikroskopie, Ultraschallsonde Huntleigh, Pulsoximetrie Nellcor", 
+    "", "", "Klinische Chemie", "", "", "First Line Sonographie", 
+    "Beta HCG,", "", ""), 
+    label = "Q10 Sonstiges")), row.names = c(NA,-28L), 
+  class = c("tbl_df", "tbl", "data.frame"))
+
+Offen(DF$q10.other)
+DF |> Offen(q10.other )
+
 }

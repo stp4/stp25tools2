@@ -60,7 +60,7 @@ Ein Objekt der Klasse \code{scale_likert_custom}.
 Character vector of hex color codes (or named vector if include.names = TRUE)
 }
 \description{
-Likert-Farbskala für ggplot2
+Likert-Farbskala für ggplot2 arbeitet intern mit `ggplot2::scale_fill_brewer`
 
 Provides various color palettes including custom, RColorBrewer, and grayscale options.
 Supports Likert scales and colorblind-friendly palettes.
