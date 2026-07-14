@@ -13,7 +13,7 @@
 #' @param include.percent Logical to show percentages instead of counts
 #' @param reverse_likert Logical to reverse Likert bar direction
 #' @param width,border Proprieties of the bars with: numeric width of bars (0-1), border: color
-#' @param wrap Numeric width for wrapping item labels
+#' @param wrap Obsolet p + scale_y_discrete(labels = function(x)   stringr::str_wrap(x, width = 35))
 #' @param palette Character color palette name
 #'   [ggplot2::scale_fill_brewer()]. Standard `"BrBG"`.
 #'   
@@ -113,6 +113,10 @@ gg_likertplot <- function(data,
                           labels_size = 3.5
                         #  include.value = FALSE
                           ) {
+  
+  if( wrap != 50) { 
+    stop("wrap ist eliminiert benutze 'scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 20))'\n")
+    }
 
   # Input validation
   if (!is.data.frame(data)) {
@@ -191,7 +195,7 @@ gg_likertplot <- function(data,
   check_mapping_vars(data, mapping)
 
   # Handle item levels and wrapping
-  data <- process_item_levels(data, mapping, item_levels, wrap)
+  data <- process_item_levels(data, mapping, item_levels)
   # Calculate ordering weights
   data <- calculate_weights(data, mapping, include.order, decreasing, include.reference)
   # Create base plot
@@ -232,16 +236,16 @@ check_mapping_vars <- function(data, mapping) {
 
 
 
-process_item_levels <- function(data, mapping, item_levels, wrap) {
+process_item_levels <- function(data, mapping, item_levels) {
   item_var <- rlang::as_name(mapping$x)
 
   if (!is.null(item_levels)) {
     data[[item_var]] <- factor(data[[item_var]], levels = item_levels)
   }
 
-  if (is.numeric(wrap)) {
-    data[[item_var]] <- wrap_string(data[[item_var]], wrap)
-  }
+  # if (is.numeric(wrap)) {, wrap
+  #   data[[item_var]] <- wrap_string(data[[item_var]], wrap)
+  # }
 
   return(data)
 }
@@ -352,9 +356,12 @@ apply_styling <- function(p, palette, direction, facet_formula) {
 
 #' @rdname farbe
 #' @description  
-#'   Likert-Farbskala für ggplot2
+#'   Likert-Farbskala für ggplot2 arbeitet intern mit `ggplot2::scale_fill_brewer`
 #'
 #' @param name Name der Palette (Standard: "RdBl").
+#'  Diverging: BrBG, PiYG, PRGn, PuOr, RdBu, RdGy, RdYlBu, RdYlGn, Spectral
+#' Qualitative: Accent, Dark2, Paired, Pastel1, Pastel2, Set1, Set2, Set3
+#' Sequential: Blues, BuGn, BuPu, GnBu, Greens, Greys, Oranges, OrRd, PuBu, PuBuGn, PuRd, Purples, RdPu, Reds, YlGn, YlGnBu, YlOrBr, YlOrRd
 #' @param n Anzahl der Stufen. Wird automatisch ermittelt, wenn NULL.
 #' @param middle Index der Mitte.
 #' @param middle.color Farbe der neutralen Mitte.
@@ -391,67 +398,53 @@ scale_fill_likert <- function(name = "RdBl",
 # Diese Funktion wird erst aufgerufen, wenn '+' genutzt wird!
 #' @importFrom ggplot2 ggplot_add scale_fill_manual
 #' @export
-ggplot_add.scale_likert_custom <- function(object, plot, object_name) {
-  
-  
-  if (!is.null(object$palette)) {
-   # p <- p +
-    #  scale_fill_brewer(palette = palette, direction = direction)
+ggplot_add.scale_likert_custom <-
+  function(object, plot, object_name) {
     
-    # 3. DIE ECHTE SCALE ERSTELLEN
-    new_scale <- 
-      ggplot2::scale_fill_brewer(
-        palette = object$palette, 
-        direction = object$direction,
-        aesthetics = object$aesthetics, 
-        !!!object$dots 
-    )
-    
-    
-    
-    
-  }
-  else{
-  # 1. INSPEKTION: Hier hast du Zugriff auf 'plot' (das p1 Objekt)
-  # Wir finden heraus, wie viele Level die Fill-Variable hat, falls n NULL ist
-  if (is.null(object$n)) {
-    # Suche die Variable, die auf 'fill' gemappt ist
-    fill_var <- rlang::as_name(plot$mapping$fill)
-    # Extrahiere die Anzahl der Level aus den Daten im Plot
-    object$n <- length(unique(plot$data[[fill_var]]))
-    
-    # message("Automatisch ermittelte Anzahl an Stufen (n): ", object$n)
-  }
-  
-  # Standardwert für Middle setzen, falls n jetzt bekannt ist
-  if (is.null(object$middle)) object$middle <- mean(1:object$n)
-  
-  # 2. FARBEN BERECHNEN
-  if (is.null(object$colors)) {
-    object$colors <- as.character(
-      likert_col(
-        n = object$n, 
-        name = object$name, 
-        middle = object$middle, 
-        middle.color = object$middle.color
+    if (!is.null(object$palette)) {
+      #  p + scale_fill_brewer(palette = palette, direction = direction)
+      # DIE ECHTE SCALE ERSTELLEN
+      new_scale <-
+        ggplot2::scale_fill_brewer(
+          palette = object$palette,
+          direction = object$direction,
+          aesthetics = object$aesthetics,!!!object$dots
+        )
+    }
+    else{
+      # 1. INSPEKTION: Hier hast du Zugriff auf 'plot' (das p1 Objekt)
+      # Wir finden heraus, wie viele Level die Fill-Variable hat, falls n NULL ist
+      if (is.null(object$n)) {
+        # Suche die Variable, die auf 'fill' gemappt ist
+        fill_var <- rlang::as_name(plot$mapping$fill)
+        # Extrahiere die Anzahl der Level aus den Daten im Plot
+        object$n <- length(unique(plot$data[[fill_var]]))
+        # message("Automatisch ermittelte Anzahl an Stufen (n): ", object$n)
+      }
+      # Standardwert für Middle setzen, falls n jetzt bekannt ist
+      if (is.null(object$middle)) {
+        object$middle <- mean(1:object$n)
+      }
+      # Eigene Funktion farbe erzeugen
+      if (is.null(object$colors)) {
+        # Eigene Funktion farbe() -> likert_col()
+        object$colors <- as.character(
+          likert_col(
+            n = object$n,
+            name = object$name,
+            middle = object$middle,
+            middle.color = object$middle.color
+          ))
+      }
+      
+      # 3. DIE ECHTE SCALE ERSTELLEN
+      new_scale <- ggplot2::scale_fill_manual(
+        values = object$colors,
+        aesthetics = object$aesthetics,
+        !!!object$dots
       )
-    )
-  }
+    }
   
-  
-  
-  
-  # 3. DIE ECHTE SCALE ERSTELLEN
-  new_scale <- ggplot2::scale_fill_manual(
-    values = object$colors, 
-    aesthetics = object$aesthetics, 
-    # Übergabe der restlichen Argumente wie 'labels', 'name' des Plots etc.
-    !!!object$dots 
-  )
-  }
-  
-  
-  # 4. ZUM PLOT HINZUFÜGEN
   # ggplot_add muss das modifizierte Plot-Objekt zurückgeben
   ggplot2::ggplot_add(new_scale, plot, object_name)
 }
