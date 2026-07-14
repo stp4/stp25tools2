@@ -292,8 +292,6 @@ make_tbll_desc <-
     rslt_all <- NULL
     tbl_rstl <- NULL
     caption <- "Summary"
-    
-  #  X <- prepare_data(...)
  
     if(use.duplicated){
       # erlaube doppelte parameter
@@ -330,20 +328,19 @@ make_tbll_desc <-
     length_measure_vars <- length(X$measure.vars)
     note <- ""
     
+    if (!include.label) X$row_name <- X$measure.vars
+    
+   # include.n
     any_missing_measure <-
-      sapply(X$data[X$measure.vars],
-             function(x) length(na.omit(x)))
-    
-    if (!include.label)
-      X$row_name <- X$measure.vars
-    
-   
-
+      sapply(X$data[X$measure.vars], function(x) length(na.omit(x)))
     include_conbine_n_nr <- FALSE
+    
     if (include.n) {
-      any_miss <- any_missing_measure[X$measure!="header"]
-    #  cat("\n Total\n")
-    #  print( any_miss )
+      any_miss <- any_missing_measure[X$measure!="character"]
+      
+      # cat("\n Total\n")
+      # print(X$measure)
+      # print( any_miss )
      if( sum(any_miss - X$N) == 0){
        # keine fehlenden dann nur erste Zeile mit N
        include.n <- FALSE
@@ -362,7 +359,8 @@ make_tbll_desc <-
     if (include.multiresponse){
       # wegen Formel und weil hier auch Zahlen kommen
       if(!is.null(digits)) X$digits <- rep(0, length(X$digits))
-      X$measure <- rep("multi", length(X$measure))
+      not__h <- which(X$measure !="character")
+      X$measure[not__h] <-  "multi" 
     }
     
     # Start der Auswertung
@@ -469,13 +467,20 @@ make_tbll_desc <-
     if (include.nr) {
       # wilder workaraund startet oben mit
       # include_conbine_n_nr
-      if (!include_conbine_n_nr)  
-      n.out <- c("(N)", rep("", ncol(rslt_all) - 1))
-      else n.out <- c("(N/n)", rep("", ncol(rslt_all) - 1))
+      if (!include_conbine_n_nr)
+        n.out <- c("(N)", rep("", ncol(rslt_all) - 1))
+      else
+        n.out <- c("(N/n)", rep("", ncol(rslt_all) - 1))
+      
+      pos_first_measure <- which(X$measure != "character")[1L]
       names(n.out) <- names(rslt_all)
       
       if (is.null(X$group.vars)) {
-        n.out[names(rslt_all) == "m" ] <- X$N
+        n.out[names(rslt_all) == "m"] <- X$N
+        if (include_conbine_n_nr) {
+          nnn <- rslt_all[pos_first_measure, 3]
+          n.out[4] <- paste0(n.out[4], "/", nnn)
+        }
       }
       else {
         tsum <- table(X$data[[X$group.vars]])
@@ -491,17 +496,18 @@ make_tbll_desc <-
         
         # nicht schoen aber es funktioniert
         if (include_conbine_n_nr) {
-          length.out <- if (is.null(X$group.vars)) 1 else nlevels(X$data[[X$group.vars]]) + include.total
-          nnn <- unlist(rslt_all[1, (seq(from = 3,by = 2,length.out = length.out))])
+          length.out <- 
+            if (is.null(X$group.vars)) 1 
+            else nlevels(X$data[[X$group.vars]]) + include.total
+          
+          nnn <- rslt_all[pos_first_measure,
+                          seq(from = 3, by = 2, length.out = length.out)]
           n.out[stringr::str_ends(names(rslt_all), "_m")] <-
             paste0(n.out[stringr::str_ends(names(rslt_all), "_m")], "/", nnn)
         }
       }
       rslt_all <- rbind(n.out, rslt_all)
     }
-    
-    
-    
     
     if (!include.n) {
       
@@ -599,7 +605,7 @@ make_tbll_desc <-
       }
     }
     
- # print(rslt_all)
+
     # Signifikanz Test
     if (include.test) {
     #  cat("\ninclude.test\n")
@@ -756,9 +762,7 @@ make_tbll_desc <-
              " kann ich nichts anfangen!")
       }
     }
-    
-    #print( rslt_all )
-    
+
     rslt_all[[1]] <- paste0(rslt_all[[1]], rslt_all[[2]])
     rslt_all <- names_option(rslt_all[-2])
     
@@ -766,7 +770,6 @@ make_tbll_desc <-
     
     if(include.prepare.data)
       attr(rslt_all, "prepare_data") <- X
-    
     
     prepare_output(
       rslt_all,
