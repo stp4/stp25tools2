@@ -345,6 +345,73 @@ Percent <- function(x,
 
 
 
+#' @rdname APA
+#' 
+#' @description Offen(): Open question (text input)
+#' 
+#' @export
+#' 
+#'
+#' @examples
+#'  
+#'  
+#' DF <- structure(
+#'   list(q10.other = structure(
+#'     c("Elektrolyte,LFP,Kreatinin, Amylase", 
+#'     "--", "nix", "O2 Sättigung", "x", "", "", "", "", "Adenovirus, Harnsäure,", 
+#'     "", "Hämocult", "", "", "", "", "", "", "Harnmikroskopie, Ultraschallsonde Huntleigh, Pulsoximetrie Nellcor", 
+#'     "", "", "Klinische Chemie", "", "", "First Line Sonographie", 
+#'     "Beta HCG,", "", ""), 
+#'     label = "Q10 Sonstiges")), row.names = c(NA,-28L), 
+#'   class = c("tbl_df", "tbl", "data.frame"))
+#' 
+#' Offen(DF$q10.other)
+#' DF |> Offen(q10.other )
+#' 
+#' 
+#' DF$group<-  sample(gl(2, 14, labels = c("Control", "Treat")))
+#' 
+#' DF |> Offen(q10.other, by = ~group)
+#' 
+Offen <- function(x, ...) {
+  UseMethod("Offen")
+}
+
+#' @param x data.frame or character string
+#' @param ... name der Variable
+#' @param by gruppierung als formula
+#' @param caption Ueberschrift
+#' @param min_char minimale anzahl an Character
+#'
+#' @rdname APA
+#' @export
+Offen.data.frame <- function(x, ..., by = NULL, caption = NULL, min_char=4 ) {
+  dots <- rlang::enquos(...)
+  first_expr <-  rlang::quo_squash(dots[[1]])
+  if(length(dots) >1) warning("Mehere Items sind noch nicht implementiert!")
+  Offen.character(x[[first_expr]], 
+                  by = x[all.vars(by)], 
+                  caption = caption,
+                  min_char=min_char)
+}
+#' @rdname APA
+#' @export
+Offen.character <- function(x, by = NULL, caption = NULL, min_char=4) {
+  if( is.null(caption)) caption <-  attr(x,"label")
+  x <- unique(as.character(x))
+  
+  non_empty_string <- unlist(lapply(x, nchar)) > min_char
+  x <- x[non_empty_string]
+  
+  rslt <- data.frame(Text= x)
+  if( !is.null( by) ){ 
+    rslt <- cbind(by[which(non_empty_string), ], rslt) 
+  }
+  prepare_output(rslt, caption = caption)
+  
+}
+
+
 
 # @rdname APA
 # @export
