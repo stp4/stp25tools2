@@ -575,11 +575,15 @@ which_output <- function()
 {
   in_opt <- get_opt("output")
   in_formats <- c("text", "markdown", "md", "pandoc", "rst",
-                  "html", "docx", "word", "latex")
+                  "html", "docx", "word", "latex",
+                  "save_as_md"
+                  )
   if (is.null(in_opt))
     in_opt <- ""
   in_formats <- in_formats[pmatch(in_opt, in_formats)]
-  in_formats <- switch(in_formats, md = "markdown", word = "docx",
+  in_formats <- switch(in_formats, 
+                       md = "markdown", 
+                       word = "docx",
                        in_formats)
   if (is.na(in_formats)) {
     # out <- knitr:::out_format()
@@ -596,7 +600,6 @@ which_output <- function()
     else {
       in_formats <- knitr::pandoc_to()
       in_formats <- switch(in_formats,
-
                            html = "markdown_html",
                            beamer = "latex",
                            guess_in_format(in_formats))
