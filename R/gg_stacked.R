@@ -37,8 +37,8 @@
 #'   Default: `c("black", "gray95")`.
 #' @param labels_hide_below Schwellenwert (0–1). Labels für Segmente mit
 #'   kleineren Anteilen werden ausgeblendet. Default `0.05`.
-#' @param wrap Numerisch. Falls angegeben, werden lange Faktorlevels
-#'   umgebrochen
+#' @param wrap  Obsolet geht einfacher mit  p + scale_y_discrete(labels = function(x) 
+#'   stringr::str_wrap(x, width = 35))
 #' @param width Balkenbreite (Default `0.90`).
 #' @param item_levels Optional: Vektor mit expliziter Reihenfolge der Items.
 #' @note Documentation created with assistance from ChatGPT.
@@ -89,7 +89,8 @@
 #' #   "Alkohol",q2.bier,q2.wein,
 #' #   by =  ~ sex) |>
 #' #   Output2() |>
-#' #   gg_stacked(DF)
+#' #   gg_stacked(DF) + 
+#'       scale_y_discrete(labels = function(x)  stringr::str_wrap(x, width = 35))
 #' 
 #' 
 #' 
@@ -115,6 +116,10 @@ gg_stacked <- function(data,
                        border = NA, # "white",
                        item_levels = NULL,
                        include.total = TRUE) {
+  
+  if( wrap != 40) { 
+    stop("wrap ist eliminiert benutze: 'scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 20))'\n")
+  }
   
   if (!is.null(attr(data, "tbll_likert"))) {
    # cat("\nAha - Hier kommt ein Tbll_multi() \n")
@@ -229,10 +234,10 @@ gg_stacked <- function(data,
     }
   }
   
-  if(is.numeric(wrap)) {
-    data[[rlang::as_name(mapping$x)]] <-
-      wrap_string(data[[rlang::as_name(mapping$x)]], wrap)
-  }
+  # if(is.numeric(wrap)) {
+  #   data[[rlang::as_name(mapping$x)]] <-
+  #     wrap_string(data[[rlang::as_name(mapping$x)]], wrap)
+  # }
   
   
   # Handle label colors
