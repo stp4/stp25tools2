@@ -124,6 +124,126 @@ dapply2 <- function (data,
 }
 
 
+#' @rdname Dapply
+#'
+#' @description Analog wie dapply2 aber speziell für SoSci-Umfragen
+#' @param measure_multi Multi-Response Items "ausgewählt"
+#' @param na_strings  NA-Strings aus Faktor entfernen "nicht beantwortet"
+#' @param trim_whitespace Leehrzeichen bei character TRUE
+#' @param recode_numeric_na,na_values  Numerische Variablen behandeln FALSE and  c(-99, -98, -97, 999),
+#' @export
+#'
+fix_sosci <- function(data,
+                      measure_multi = "ausgewählt",
+                      na_strings = "nicht beantwortet",
+                      trim_whitespace = TRUE,
+                      # convert_dates = TRUE,
+                      recode_numeric_na = FALSE,
+                      na_values = c(-99, -98, -97, 999),
+                      ...) {
+  dplyr::mutate(
+    data,
+    dplyr::across(
+      tidyselect::all_of(names(data)),
+      .fns = function(x) {
+        lbl <- attr(x, "label")
+        
+        # 1. Numerische Variablen behandeln
+        if (is.numeric(x)) {
+          # NA-Werte rekodieren
+          if (recode_numeric_na) {
+            x <- ifelse(x %in% na_values, NA, x)
+          }
+          attr(x, "label") <- lbl
+          return(x)
+        }
+        
+        # 2. Faktor-Variablen behandeln
+        else if (is.factor(x)) {
+          # Multi-Response Items
+          if (nlevels(x) == 2 & levels(x)[2] == measure_multi) {
+            x <- x == measure_multi
+            lbl <- stringr::str_split_fixed(lbl, ": ", n = 2)
+            attr(x, "label") <- lbl[2]
+            return(x)
+          }
+          # NA-Strings aus Faktor entfernen
+          else if (levels(x)[1] == na_strings) {
+            x <- factor(x, levels(x)[-1])
+            attr(x, "label") <- lbl
+            return(x)
+          }
+          # Leere Faktor-Level entfernen
+          # else {
+          #   x <- forcats::fct_drop(x)
+          #  attr(x, "label") <- lbl
+          #  return(x)
+          # }
+        }
+        
+        # 3. Character-Variablen behandeln
+        else if (is.character(x)) {
+          # Mojibake korrigieren
+          x <- fix_sosci_mojibake(x)
+          
+          # Whitespace trimmen
+          if (trim_whitespace) {
+            x <- stringr::str_trim(x)
+            # Leere Strings zu NA
+            x <- ifelse(x == "", NA, x)
+          }
+          
+          attr(x, "label") <- lbl
+          return(x)
+        }
+        
+        # 4. Datumsvariablen behandeln (falls vorhanden)
+        #else if (convert_dates && inherits(x, "Date")) {
+        #  # Hier könnten spezifische Datumstransformationen erfolgen
+        #  attr(x, "label") <- lbl
+        #  return(x)
+        #}
+        
+        # 5. Logical-Variablen
+        #else if (is.logical(x)) {
+        #  attr(x, "label") <- lbl
+        #  return(x)
+        #}
+        
+        else {
+          return(x)
+        }
+      }
+    )
+  ) 
+
+}
+
+
+  fix_sosci_mojibake <-
+    function(x,
+             mapping = c(
+               "TÃ¤" = "Tä",
+               "Ã¤"  = "ä",
+               "Ã¶"  = "ö",
+               "Ã¼"  = "ü",
+               "Ã„"  = "Ä",
+               "Ã–"  = "Ö",
+               "Ãœ"  = "Ü",
+               "ÃŸ"  = "ß",
+               "â‚¬" = "€",
+               "â„¢" = "™",
+               "Â°"  = "°"
+             ),
+             ...) {
+      stringr::str_replace_all(x, mapping)
+    }
+  
+
+
+
+
+
 #' Skalen zu einem Index zusammenfassen
 #'
 #' Berechnet einen zusammengesetzten Index aus mehreren Variablen
@@ -146,6 +266,7 @@ dapply2 <- function (data,
 #'   wenn nicht angegeben.
 #' @param max_level Maximaler Skalenwert. Wird automatisch bestimmt,
 #'   wenn nicht angegeben.
+#'   @param na.strings numeric oder charachter level wie zb nicht ausgewaehlt 
 #'
 #' @returns Ein numerischer Vektor mit dem berechneten Index.
 #'
@@ -174,19 +295,32 @@ dapply2 <- function (data,
 #' Anamnesebogen$wechsel
 Index <- function(...,
                   na.rm = TRUE,
-                  
                   as_percent = TRUE,
                   fun = mean,
                   digits = 2,
                   re_code = NULL,
                   min_level = NA,
-                  max_level = NA) {
+                  max_level = NA,
+                  na.strings = NULL
+                  ) {
   dots <- list(...)
-  if (is.na(min_level) & is.na(max_level) & is.factor(dots[[1]])) {
+  
+  if (!is.null(na.strings)) {
+    if (is.character(na.strings))
+      na.strings <- which(levels(dots[[1]]) == na.strings)
+    dots <- lapply(dots, function(x) {
+      factor(x, levels(x)[-na.strings])
+    })
+  }
+  
+  
+  if (is.na(min_level) &
+      is.na(max_level) & is.factor(dots[[1]])) {
     min_level <- 1
     max_level <-  nlevels(dots[[1]])
   }
   dots <- sapply(dots, as.numeric)
+    
   
   if (is.numeric(re_code))
     dots <- Umcodieren(dots, re_code, min_level, max_level)
