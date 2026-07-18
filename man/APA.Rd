@@ -78,7 +78,7 @@ Offen(x, ...)
 
 \item{include.r}{APA.lm: R-Squar}
 
-\item{by}{gruppierung als formula (noch nicht fertig)}
+\item{by}{gruppierung als formula}
 
 \item{caption}{Ueberschrift}
 
@@ -165,5 +165,10 @@ DF <- structure(
 
 Offen(DF$q10.other)
 DF |> Offen(q10.other )
+
+
+DF$group<-  sample(gl(2, 14, labels = c("Control", "Treat")))
+
+DF |> Offen(q10.other, by = ~group)
 
 }

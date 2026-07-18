@@ -389,27 +389,36 @@ Offen.data.frame <- function(x, ..., by = NULL, caption = NULL, min_char=4 ) {
   dots <- rlang::enquos(...)
   first_expr <-  rlang::quo_squash(dots[[1]])
   if(length(dots) >1) warning("Mehere Items sind noch nicht implementiert!")
-  Offen.character(x[[first_expr]], 
-                  by = x[all.vars(by)], 
-                  caption = caption,
-                  min_char=min_char)
+  
+  Offen.character(x[[first_expr]],
+                   by = by,
+                   caption = caption,
+                   min_char = min_char)
 }
+
 #' @rdname APA
 #' @export
 Offen.character <- function(x, by = NULL, caption = NULL, min_char=4) {
-  if( is.null(caption)) caption <-  attr(x,"label")
-  x <- unique(as.character(x))
   
-  non_empty_string <- unlist(lapply(x, nchar)) > min_char
-  x <- x[non_empty_string]
+  if( is.null(caption)) 
+    caption <-  attr(x,"label")
+  
+  x <- as.character(x)
+  
+  non_empty_string <- which(unlist(lapply(x, nchar)) > min_char)
+  non_na_string <-  which(!is.na(x))
+  my_string <- unique(c( non_empty_string, non_na_string))
+  x <- x[my_string]
   
   rslt <- data.frame(Text= x)
   if( !is.null( by) ){ 
-    rslt <- cbind(by[which(non_empty_string), ], rslt) 
+    rslt <- cbind(by[my_string, ], rslt) 
   }
   prepare_output(rslt, caption = caption)
   
 }
+
+
 
 
 
