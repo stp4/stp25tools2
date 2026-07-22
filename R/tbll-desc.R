@@ -205,23 +205,26 @@ Tbll_desc <-
     X <- prepare_data(...)
     
     if(is.null(X$condition.vars)){
- 
-    make_tbll_desc(X,
-                   include.label = include.label,
-                   include.n = include.n,
-                   include.nr = include.nr,
-                   include.total = include.total,
-                   include.test = include.test,
-                   include.normality.tests = include.normality.tests,
-                   include.multiresponse = include.multiresponse,
-                   include.custom = include.custom,
-                   include.value = include.value,
-                   include.measure = include.measure,
-                   digits = digits,
-                   use.level = use.level,
-                   use.duplicated = use.duplicated,
-                   include.prepare.data = include.prepare.data,
-                   return.data.frame = FALSE)
+      return(
+        make_tbll_desc(
+          X,
+          include.label = include.label,
+          include.n = include.n,
+          include.nr = include.nr,
+          include.total = include.total,
+          include.test = include.test,
+          include.normality.tests = include.normality.tests,
+          include.multiresponse = include.multiresponse,
+          include.custom = include.custom,
+          include.value = include.value,
+          include.measure = include.measure,
+          digits = digits,
+          use.level = use.level,
+          use.duplicated = use.duplicated,
+          include.prepare.data = include.prepare.data,
+          return.data.frame = FALSE
+        )
+      )
     }
     else{
       rslt_all <- NULL
@@ -257,18 +260,18 @@ Tbll_desc <-
         rslt_all <- dplyr::bind_rows(rslt_all, tbl_rstl)
         
       }
-
       if(include.prepare.data)
         attr(rslt_all, "prepare_data") <- X
-      
-      prepare_output(
+      return(prepare_output(
         rslt_all,
         caption = caption,
         note = note,
-        N = X$N)
+        N = X$N
+      ))
     
     
-  }
+    }
+
 }
 
 make_tbll_desc <-
@@ -462,7 +465,7 @@ make_tbll_desc <-
       else
         rslt_all <- tbl_rstl
     }
-    
+ 
     # 4. Anzahl entweder als Spalte oder als Singel-Zeile
     if (include.nr) {
       # wilder workaraund startet oben mit
@@ -508,7 +511,7 @@ make_tbll_desc <-
       }
       rslt_all <- rbind(n.out, rslt_all)
     }
-    
+ 
     if (!include.n) {
       
       length.out <- if (is.null(X$group.vars)) 1
@@ -522,7 +525,7 @@ make_tbll_desc <-
     # workaround um eindeutige row-names zu bekommen
     # die werden zum mergen gebraucht
     rownames(rslt_all) <- gsub("\\.first_factor", "", rownames(rslt_all))
-    
+ 
     #  Eigene Funktion fun(x, by, measure, measure.test)
     #  return vector oder matrix
     #  die länge ist gleich wie bei measure oder die anzahl an factoren
@@ -677,7 +680,7 @@ make_tbll_desc <-
                           collapse = ", "), ".", sep = "")
       rslt_all$statistics <- rslt_test
     }
-    
+ 
     if (include.normality.tests) {
       rslt_disttest <- NULL
       for (i in seq_len(length_measure_vars)) {
@@ -766,18 +769,36 @@ make_tbll_desc <-
     rslt_all[[1]] <- paste0(rslt_all[[1]], rslt_all[[2]])
     rslt_all <- names_option(rslt_all[-2])
     
-    if(!return.data.frame) {
+  
     
-    if(include.prepare.data)
-      attr(rslt_all, "prepare_data") <- X
+    # workaraund für LLM -> MD Files
     
-    prepare_output(
-      rslt_all,
-      caption = caption,
-      note = note,
-      N = X$N)
+    sep_factor <- paste(symbol_nbsp(), symbol_nbsp())
+    is_factor_name <- grep("__f__H", rslt_all[[1]]) 
+    is_factor_level <- grep(sep_factor,rslt_all[[1]])
+    rslt_all[[1]][is_factor_name]  <- gsub( "__f__H", "", rslt_all[[1]][is_factor_name])
+    rownames(rslt_all)[is_factor_name] <-  
+                                 paste0(rownames(rslt_all)[is_factor_name], "__f__H")
+    rownames(rslt_all)[is_factor_level] <-  
+      paste0(rownames(rslt_all)[is_factor_level], "__f__l")
+    
+    attr(rslt_all, "stp25") <- "tbll_desc"
+ 
+    if (!return.data.frame) {
+      if (include.prepare.data)
+        attr(rslt_all, "prepare_data") <- X
+    #  cat("\n if: ")
+     # print(rownames(rslt_all))
+      prepare_output(rslt_all,
+                     caption = caption,
+                     note = note,
+                     N = X$N)
     }
-    else {rslt_all}
+    else {
+     # cat("\n else: ")
+     # print(rownames(rslt_all))
+      rslt_all
+    }
     
   }
 
@@ -798,11 +819,8 @@ prct_or_mean <- function(x,
                          useNA = get_opt("percent", "useNA"),
                          max_factor_length = 35,
                          use.level = 1) {
- # cat("\nprct_or_mean\n")
- # print(list(x, digits, measure ))
   rslt <- NULL
   measure_fun <- get_opt("measure_fun", measure)
- # if( all(is.na(x)) ) measure_fun <- "emty_tbll"
 
   # bei mean beauche ich keine NA
   if (useNA == "no" |
@@ -827,13 +845,10 @@ prct_or_mean <- function(x,
                          useNA = useNA,
                          max_factor_length = max_factor_length,
                          use.level = use.level))
-#  cat("\n do.call -> measure_fun \n")
- # print(measure_fun)
-#  print(res)
 
   if (nrow(res)>1) {
     x0 <- data.frame(
-      Item = row_name,
+      Item = paste0(row_name, "__f__H"), # Workaraund für md-Files und LLMs
       lev = get_opt("percent", "include_name"),
       n = res$n[1] ,
       m = "",
@@ -846,7 +861,12 @@ prct_or_mean <- function(x,
   } else {
     rslt <- cbind(Item = c(row_name, rep("", nrow(res) - 1)), res)
   }
+  
+  # print(rownames(res))
 
+  # rownames(rslt) <- paste0(rownames(rslt), "__", measure_fun)
+    #  print(rownames(rslt))
+  # 
   rslt
 }
 
@@ -1064,6 +1084,15 @@ prct_tbll <-
       # x besitz keine Werte
       
       #print(class(x))
+      
+      # dummy <-      data.frame(
+      #   lev = levels(x),
+      #   n = c(n, rep("", nlevels(x) - 1)),
+      #   m = NA,
+      #   stringsAsFactors = FALSE
+      # )
+      # 
+      # print(rownames(dummy))
       data.frame(
         lev = levels(x),
         n = c(n, rep("", nlevels(x) - 1)),

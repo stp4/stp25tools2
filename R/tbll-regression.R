@@ -277,12 +277,14 @@ Tbll_regression <- function(...,
       c(param_vars[1], paste0(model_names, "_", param_vars[2]))
     else  names(model_gof) <- param_vars[1:2]
 
-    dplyr::bind_rows(model_param, c(Parameter = "Goodnes of fit"), model_gof)
+   rslt <-  dplyr::bind_rows(model_param, c(Parameter = "Goodnes of fit"), model_gof)
+    attr(rslt, "stp25") <- "tbll_regression"
+   return(rslt) 
   }
   else if (include.param)
-    model_param
+    return(model_param)
   else
-    model_gof
+    return(model_gof)
 }
 
 # Funktion zum Hinzufügen von Sternen

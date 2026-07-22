@@ -133,10 +133,17 @@ return(rslt)
 
 #' @noRd
 size_data_tabel <- function(x, data) {
-  g <- all.vars(x)
+  g <- all.vars(x)  
+ # print(g)
+  if( length(g) == 1 ) return(0)
   data <- na.omit(data[g])
-  g <- g[length(g)]
-  table(data[[g]])
+
+  if (is.factor(data[[2]]))
+    table(data[[2]])
+  else if (is.factor(data[[1]]))
+    table(data[[1]])
+  else
+    round((nrow(data)-1) / 2)
 }
 
 
@@ -214,7 +221,7 @@ conTest = function(x,
   else{
     if(get_opt("Fstat","small.sampel"))
       paste0("sample to small (", paste(g, collapse = "/"), ")")
-    else NA_character_
+    else ""
   }
 
 }
@@ -240,10 +247,11 @@ catTest = function(x,
       include.test
     }
   }
+  else if (all(g == 0)) { "" }
   else{
     if(get_opt("Fstat","small.sampel"))
       paste0("sample to small (", paste(g, collapse = "/"), ")")
-    else NA_character_
+    else ""
   }
 
 }
@@ -259,13 +267,13 @@ ordTest = function(x, data) {
     #      testname = "Proportional odds likelihood ratio",
     #      statname = "Chi-square", plotmathstat = "chi[df]^2")
     res<-gsub("X2", "LR", rndr_X(f["Model L.R."], f["d.f."], NULL, f["P"]))
-    names(res)<- "Logistic Regression"
+    names(res)<- "Logistic Regression (ordTest)"
     res
   }
   else{
     if(get_opt("Fstat","small.sampel"))
       paste0("sample to small (", paste(g, collapse = "/"), ")")
-    else NA_character_
+    else ""
   }
 }
 
@@ -284,9 +292,9 @@ spearmanTest2 <- function(x, data) {
 
   res <- rndr_F(st[2], st[3], st[4], st[5])
   if (st[3] == 1)
-    names(res) <- "Wilcoxon-Test"
+    names(res) <- "Wilcoxon-Test (spearman2)"
   else
-    names(res) <- "Kruskal-Wallis-Test"
+    names(res) <- "Kruskal-Wallis-Test (spearman2)"
 
   res
 }
@@ -301,7 +309,7 @@ WilkoxTest2 <- function(x, data) {
                                         alternative =  "two.sided",
                                         exact=FALSE))
   res <- rndr_U(res$statistic, res$p.value)
-  names(res) <- "Wilcoxon-Test"
+  names(res) <- "Wilcoxon-Test (wilcox)"
   res
 }
 
@@ -313,7 +321,7 @@ KruskalTest2 <- function(x, data) {
   res <- stats::kruskal.test(x, data)
   res <-
     rndr_H(res$statistic, res$parameter, res$p.value)
-  names(res) <- "Kruskal-Wallis-Test"
+  names(res) <- "Kruskal-Wallis-Test (kruskal)"
   res
 }
 
@@ -325,7 +333,7 @@ Aov2 <- function(x, data) {
   res <- car::Anova(res, type = 3)
   res <-
     rndr_F(res[2, 3], res[2, 2], res[3, 2], res[2, 4])
-  names(res) <- "ANOVA"
+  names(res) <- "ANOVA (aov)"
   res
 }
 
@@ -337,7 +345,7 @@ TTest2 <- function(x, data) {
   res <- stats::t.test(x, data, alternative =  "two.sided")
   res <-
     rndr_T(res$statistic, res$parameter, res$p.value)
-  names(res) <- "T-Test"
+  names(res) <- "T-Test (ttest)"
   res
 }
 
@@ -357,7 +365,7 @@ chisqTest2 <- function(x, data) {
     return("n.a.")
   res <-
     rndr_X(res$statistic, res$parameter, NULL, res$p.value)
-  names(res) <- "Pearson Chi-squared"
+  names(res) <- "Pearson Chi-squared (chisq)"
   res
 }
 
@@ -400,7 +408,7 @@ gml_binomial <- function(x, data) {
 
   rslt <- APA(fit_1)
 
-  names(rslt) <- "LRT-Test"
+  names(rslt) <- "LRT-Test (binomial)"
   rslt
 }
 
@@ -412,7 +420,7 @@ fisherTest2 <- function(x, data) {
   if (all(dim(xt) == c(2, 2))) {
     res <- stats::fisher.test(xt)
     res <- rndr_fischer(res$estimate, res$p.value)
-    names(res) <- "Fisher Exact Test"
+    names(res) <- "Fisher Exact Test (fisher)"
     res
 
   } else
