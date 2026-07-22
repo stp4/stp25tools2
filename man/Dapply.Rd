@@ -5,6 +5,7 @@
 \alias{Dapply.formula}
 \alias{Dapply.data.frame}
 \alias{dapply2}
+\alias{fix_sosci}
 \title{Apply Functions Over Data Frames}
 \usage{
 Dapply(...)
@@ -14,6 +15,16 @@ Dapply(...)
 \method{Dapply}{data.frame}(data, ..., fun = function(y) as.numeric(y))
 
 dapply2(data, fun = function(x) as.numeric(x), ...)
+
+fix_sosci(
+  data,
+  measure_multi = "ausgewählt",
+  na_strings = "nicht beantwortet",
+  trim_whitespace = TRUE,
+  recode_numeric_na = FALSE,
+  na_values = c(-99, -98, -97, 999),
+  ...
+)
 }
 \arguments{
 \item{...}{Namen der Spalten}
@@ -23,6 +34,14 @@ dapply2(data, fun = function(x) as.numeric(x), ...)
 \item{data}{Data.frame}
 
 \item{fun}{funktion function(x) as.numeric(x)}
+
+\item{measure_multi}{Multi-Response Items "ausgewählt"}
+
+\item{na_strings}{NA-Strings aus Faktor entfernen "nicht beantwortet"}
+
+\item{trim_whitespace}{Leehrzeichen bei character TRUE}
+
+\item{recode_numeric_na, na_values}{Numerische Variablen behandeln FALSE and  c(-99, -98, -97, 999),}
 }
 \value{
 data.frame
@@ -31,6 +50,8 @@ data.frame
 Dapply, dapply2: plyr::llply() + Label()
 
 dapply2: Copie of plyr::llply()
+
+Analog wie dapply2 aber speziell für SoSci-Umfragen
 }
 \examples{
 

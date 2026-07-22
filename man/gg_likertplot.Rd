@@ -43,7 +43,7 @@ object from \code{Summarise_likert()}}
 
 \item{reverse_likert}{Logical to reverse Likert bar direction}
 
-\item{wrap}{Numeric width for wrapping item labels}
+\item{wrap}{Obsolet p + scale_y_discrete(labels = function(x)   stringr::str_wrap(x, width = 35))}
 
 \item{palette}{Character color palette name
 [ggplot2::scale_fill_brewer()]. Standard `"BrBG"`.

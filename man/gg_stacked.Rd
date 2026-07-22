@@ -71,8 +71,8 @@ Default: `c("black", "gray95")`.}
 \item{labels_hide_below}{Schwellenwert (0–1). Labels für Segmente mit
 kleineren Anteilen werden ausgeblendet. Default `0.05`.}
 
-\item{wrap}{Numerisch. Falls angegeben, werden lange Faktorlevels
-umgebrochen}
+\item{wrap}{Obsolet geht einfacher mit  p + scale_y_discrete(labels = function(x) 
+stringr::str_wrap(x, width = 35))}
 
 \item{width}{Balkenbreite (Default `0.90`).}
 
@@ -140,7 +140,8 @@ cowplot::plot_grid(
 #   "Alkohol",q2.bier,q2.wein,
 #   by =  ~ sex) |>
 #   Output2() |>
-#   gg_stacked(DF)
+#   gg_stacked(DF) + 
+      scale_y_discrete(labels = function(x)  stringr::str_wrap(x, width = 35))
 
 
 
