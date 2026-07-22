@@ -294,7 +294,22 @@ make_tbll_desc <-
   ) {
     rslt_all <- NULL
     tbl_rstl <- NULL
-    caption <- "Summary"
+    caption <- "Univariate description"
+    
+    # 
+    # attr_table <- paste0(  
+    #   "Table header measure name: ", get_opt("table", "measure.name.m"),
+    #   "\nFormat:\n  - median: ", calc_mean(1:5),
+    #   "\n  - mean: ", calc_median(1:5),
+    #   "\n  - percent: " , as.character(calc_percent(gl(2, 8, labels = c("Control", "Treat")))[1])
+    # )
+    # 
+    # 
+    # attr_n<- "include-n" # no-n
+    # attr_group <- "no-group"
+    # attr_tabel_test <- get_opt("table", "measure.name.statistics")
+    # attr_test <- "no-test"
+    
  
     if(use.duplicated){
       # erlaube doppelte parameter
@@ -615,6 +630,7 @@ make_tbll_desc <-
       cattest <- get_opt("test_fun_cattest")
       contest <- get_opt("test_fun_contest")
       note <- paste(note, ". Test Statistic:", sep = "")
+      
       rslt_test <- NULL
       
       for (i in seq_len(length_measure_vars)) {
@@ -625,8 +641,8 @@ make_tbll_desc <-
           formula(paste(X$measure.vars[i], "~", X$group.vars[1]))
         
         if (X$measure.test[i] == "notest") {
-        #  cat("\n ", i, " notest\n")
-          rslt_test <- append(rslt_test, "no-test")
+          if (grepl("^h__.*__h$",  X$measure.vars[i])) rslt_test <- append(rslt_test, "")
+          else   rslt_test <- append(rslt_test, "no-test")
         }
         else if (X$measure.test[i] == "contest") {
           if (X$measure.class[i] == "factor") {
@@ -678,6 +694,7 @@ make_tbll_desc <-
       note <- paste(note, " ",
                     paste(unique(names(rslt_test)[nzchar(names(rslt_test))]),
                           collapse = ", "), ".", sep = "")
+      
       rslt_all$statistics <- rslt_test
     }
  
@@ -823,8 +840,7 @@ prct_or_mean <- function(x,
   measure_fun <- get_opt("measure_fun", measure)
 
   # bei mean beauche ich keine NA
-  if (useNA == "no" |
-      measure_fun %in% c("mean_tbll", "median_tbll")) {
+  if (useNA == "no" | measure_fun %in% c("mean_tbll", "median_tbll")) {
     x <- na.omit(x)
     n <- length(x)
   }
@@ -837,7 +853,6 @@ prct_or_mean <- function(x,
     return(paste("Funktion", measure_fun, "nicht gefunden"))
   }
 
-  # measure_fun ->  prct_tbll, median_tbll usw.
   res <- do.call(measure_fun,
                     list(x,
                          digits = digits,
@@ -862,11 +877,7 @@ prct_or_mean <- function(x,
     rslt <- cbind(Item = c(row_name, rep("", nrow(res) - 1)), res)
   }
   
-  # print(rownames(res))
 
-  # rownames(rslt) <- paste0(rownames(rslt), "__", measure_fun)
-    #  print(rownames(rslt))
-  # 
   rslt
 }
 
