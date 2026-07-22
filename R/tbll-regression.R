@@ -203,12 +203,13 @@ Tbll_regression <- function(...,
 
   # Parameter-Extraktion
   model_param <- NULL
+  model_info <- list()
   if (include.param) {
+    
     for (i in seq_along(models)) {
       # Modelltyp bestimmen
       model <- models[[i]]
       model_class <- class(model)[1]
-      print(model_class)
       #  model_family <- if ("glm" %in% class(model)) model$family$family else NULL
       is_logistic <- model_class == "glm"# && !is.null(model_family) && model_family == "binomial"
 
@@ -261,6 +262,24 @@ Tbll_regression <- function(...,
      if(number_models > 1) names(param) <- 
        c(param_vars_temp[1], paste0(model_name, "_", param_vars_temp[-1]))
 
+     
+     
+     paramx <- attributes(param)
+     model_info[[model_name]] <- list(
+       statistic = paste(param_vars_temp[-1], collapse = ", "),
+       test_statistic = paramx$test_statistic,
+       model_class = paste(paramx$model_class, collapse = ", "),
+       linear_model = paramx$linear_model,
+       mixed_model = paramx$mixed_model,
+       ordinal_model = paramx$ordinal_model,
+       log_link = paramx$log_link,
+       logit_link = paramx$logit_link,
+       ci_method = paramx$ci_method,
+       ci = paramx$ci,
+       model_call = paste(as.character(paramx$model_call), collapse = ", "),
+       software = "parameters::model_parameters()"
+     )
+    
     # Mergen mit vorherigen Modellen
      if (i == 1)
        model_param <-  param
@@ -278,13 +297,20 @@ Tbll_regression <- function(...,
     else  names(model_gof) <- param_vars[1:2]
 
    rslt <-  dplyr::bind_rows(model_param, c(Parameter = "Goodnes of fit"), model_gof)
-    attr(rslt, "stp25") <- "tbll_regression"
-   return(rslt) 
+  
+ 
   }
   else if (include.param)
-    return(model_param)
+    rslt <- model_param
   else
     return(model_gof)
+  
+  
+    attr(rslt, "stp25") <- "tbll_regression"
+    attr(rslt, "model_info") <-  model_info
+    
+    
+    return(rslt) 
 }
 
 # Funktion zum Hinzufügen von Sternen
