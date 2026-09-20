@@ -347,7 +347,7 @@ Percent <- function(x,
 
 #' @rdname APA
 #' 
-#' @description Offen(): Open question (text input)
+#' @description Offen():  open-ended questions 
 #' 
 #' @export
 #' 
@@ -398,24 +398,32 @@ Offen.data.frame <- function(x, ..., by = NULL, caption = NULL, min_char=4 ) {
 
 #' @rdname APA
 #' @export
-Offen.character <- function(x, by = NULL, caption = NULL, min_char=4) {
-  
-  if( is.null(caption)) 
-    caption <-  attr(x,"label")
+Offen.character <- function(x,
+                            by = NULL,
+                            caption = NULL,
+                            min_char = 4,
+                            na_strings = "") {
+  if (is.null(caption))
+    caption <-  attr(x, "label")
   
   x <- as.character(x)
   
-  non_empty_string <- which(unlist(lapply(x, nchar)) > min_char)
-  non_na_string <-  which(!is.na(x))
-  my_string <- unique(c( non_empty_string, non_na_string))
-  x <- x[my_string]
+  short_string <- (unlist(lapply(x, nchar)) < min_char)
+  my_na_strings <- (x %in% na_strings)
+  na_string <-  short_string | my_na_strings | is.na(x)
   
-  rslt <- data.frame(Text= x)
-  if( !is.null( by) ){ 
-    rslt <- cbind(by[my_string, ], rslt) 
+  rslt <- data.frame(
+    Text = x[!na_string], 
+    row.names = which(!na_string))
+  
+  if (!is.null(by)) {
+    if (is.data.frame(by))
+      rslt <- cbind(by[!na_string, ], rslt)
+    else
+      rslt <- cbind(Group = by[!na_string], rslt)
   }
-  prepare_output(rslt, caption = caption)
   
+  prepare_output(rslt, caption = caption)
 }
 
 
