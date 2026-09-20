@@ -1,6 +1,8 @@
 #' Generate Descriptive Statistics Tables
 #'
-#' A flexible function for creating descriptive statistics tables with support for
+#' @description 
+#'  Tbll_desc():
+#'  A flexible function for creating descriptive statistics tables with support for
 #' grouping variables, multiple output formats, and custom statistical tests.
 #'
 #' @param ... A formula specifying variables to analyze and optional grouping variables.
@@ -40,7 +42,6 @@
 #' \code{\link{prepare_data}}, \code{\link{Tbll_desc_grouped}}, \code{\link{Tbll_test}},
 #'  \code{\link[Hmisc]{spearman2}}
 #'  
-
 #'
 #' @export
 #' @examples
@@ -294,23 +295,10 @@ make_tbll_desc <-
   ) {
     rslt_all <- NULL
     tbl_rstl <- NULL
+  
     caption <- "Univariate description"
+    group_statistic <- NULL
     
-    # 
-    # attr_table <- paste0(  
-    #   "Table header measure name: ", get_opt("table", "measure.name.m"),
-    #   "\nFormat:\n  - median: ", calc_mean(1:5),
-    #   "\n  - mean: ", calc_median(1:5),
-    #   "\n  - percent: " , as.character(calc_percent(gl(2, 8, labels = c("Control", "Treat")))[1])
-    # )
-    # 
-    # 
-    # attr_n<- "include-n" # no-n
-    # attr_group <- "no-group"
-    # attr_tabel_test <- get_opt("table", "measure.name.statistics")
-    # attr_test <- "no-test"
-    
- 
     if(use.duplicated){
       # erlaube doppelte parameter
       in_vars <- strsplit(as.character(X$formula)[2L], " \\+ ")[[1L]]
@@ -353,12 +341,14 @@ make_tbll_desc <-
       sapply(X$data[X$measure.vars], function(x) length(na.omit(x)))
     include_conbine_n_nr <- FALSE
     
+    tbll_attr <- list(
+       measure = X$measure,
+       group.vars = X$group.vars,
+       sig.test = "none")
+    
     if (include.n) {
       any_miss <- any_missing_measure[X$measure!="character"]
       
-      # cat("\n Total\n")
-      # print(X$measure)
-      # print( any_miss )
      if( sum(any_miss - X$N) == 0){
        # keine fehlenden dann nur erste Zeile mit N
        include.n <- FALSE
@@ -384,8 +374,6 @@ make_tbll_desc <-
     # Start der Auswertung
     # 1. Mittelweret mit purrr::pmap
     if (is.null(X$group.vars)) {
-      
-      
       include.total <- FALSE
       rslt_all <-
         list_rbind(purrr::pmap(
@@ -421,14 +409,19 @@ make_tbll_desc <-
     
     # 3. Gruppenvergleich mit split() und for()
     if (!is.null(X$group.vars)) {
+      
+      caption <- paste(X$col_name, collapse=" / ")
+      
       if (length(X$group.vars) > 1) {
+        # sollte eine Gruppe 'group' heisen wird sie einfach überschrieben!
         X$data$group <- interaction2(X$data[X$group.vars])
-        caption <- paste(X$group.vars, collapse = ", ")
+       # caption <- paste(X$group.vars, collapse = ", ")
         X$group.vars <- "group"
-      } else {
-        caption <- X$group.vars
-      }
-     
+      } 
+      #else {
+     #   caption <- X$group.vars
+    #  }
+      
       # Wenn die Gruppen leer sind factor-stufe entfernen
       freq_groups <- table(X$data[[X$group.vars]])
       empty_groups <- which(freq_groups == 0)
@@ -438,8 +431,9 @@ make_tbll_desc <-
           X$data[[X$group.vars]], 
           names(which(freq_groups > 0)))
       }
-  
       
+      group_statistic <- paste0(caption, ": ", Percent(X$data[[X$group.vars]])) 
+    
       data <- split(X$data[X$measure.vars], X$data[[X$group.vars]])
       if(any(sapply(data, lengths) == 0 )) {
         cat("\n\nMoegliche Fehlerquelle:\nIn der Gruppen-variable gibt es Leere Factoren!\n\n")
@@ -653,9 +647,6 @@ make_tbll_desc <-
           
           rslt_test <-
             append(rslt_test, conTest(fm_aov, X$data))
-          
-          
-          
         }
         else if (X$measure.test[i] == "cattest") {
           rslt_test <- append(rslt_test, catTest(fm_chi, X$data))
@@ -691,10 +682,9 @@ make_tbll_desc <-
       if (include.nr)
         rslt_test <- append(rslt_test, "", after = 0)
       
-      note <- paste(note, " ",
-                    paste(unique(names(rslt_test)[nzchar(names(rslt_test))]),
-                          collapse = ", "), ".", sep = "")
-      
+      tbll_attr$sig.test <- 
+        paste(unique(names(rslt_test)[nzchar(names(rslt_test))]), collapse = ", ")
+      note <- paste(note, " ", tbll_attr$sig.test, ".", sep = "")
       rslt_all$statistics <- rslt_test
     }
  
@@ -786,8 +776,6 @@ make_tbll_desc <-
     rslt_all[[1]] <- paste0(rslt_all[[1]], rslt_all[[2]])
     rslt_all <- names_option(rslt_all[-2])
     
-  
-    
     # workaraund für LLM -> MD Files
     
     sep_factor <- paste(symbol_nbsp(), symbol_nbsp())
@@ -800,23 +788,34 @@ make_tbll_desc <-
       paste0(rownames(rslt_all)[is_factor_level], "__f__l")
     
     attr(rslt_all, "stp25") <- "tbll_desc"
+   # attr(rslt_all, "group_statistic") <- group_statistic
+   # attr(rslt_all, "tbll_rslt") <- tbll_attr
+      
+      if(is.null(tbll_attr$group.vars)){
+        attr(rslt_all, "group_statistic")  <- ""
+      }
+      else { 
+        attr(rslt_all, "group_statistic")  <- 
+            paste0(
+            # "Univariate Description Tabel\n", 
+             "- Group Variable: ", paste(tbll_attr$group.vars, collapse= ", " ),"\n",
+             "- Group statistic: ", group_statistic, "\n",
+             "- Inference statistics: ", tbll_attr$sig.test)
+        }
+      
  
+    
     if (!return.data.frame) {
       if (include.prepare.data)
         attr(rslt_all, "prepare_data") <- X
-    #  cat("\n if: ")
-     # print(rownames(rslt_all))
       prepare_output(rslt_all,
                      caption = caption,
                      note = note,
                      N = X$N)
     }
     else {
-     # cat("\n else: ")
-     # print(rownames(rslt_all))
       rslt_all
     }
-    
   }
 
 
@@ -825,8 +824,7 @@ make_tbll_desc <-
 # Die Berechnung ----------------------------------------------------------
 
 
-#' Die Berechnung
-#'
+# Die Berechnung
 #' @noRd
 prct_or_mean <- function(x,
                          digits,
@@ -885,8 +883,7 @@ prct_or_mean <- function(x,
 # Leer --------------------------------------------------------------------
 
 
-#' Leerer Data.Frame
-#'
+# Leerer Data.Frame
 #' @noRd
 emty_tbll <-
   function(...) {
@@ -1058,9 +1055,9 @@ calc_mean <- function(x,
 # percent -----------------------------------------------------------------
 
 
-#' @param n intern
-#' @param useNA an table c("no", "ifany", "always")
-#' @param max_factor_length lange  kuerzen
+# @param n intern
+# @param useNA an table c("no", "ifany", "always")
+# @param max_factor_length lange  kuerzen
 #' @noRd
 prct_tbll <-
   function(x,
@@ -1115,8 +1112,8 @@ prct_tbll <-
   }
 
 
-#' @param use.level welcher level wir gezaelt
-#' @param include.level mit (yes) in labels?
+# @param use.level welcher level wir gezaelt
+# @param include.level mit (yes) in labels?
 #' @noRd
 multi_tbll <- function(x,
                        digits = get_opt("percent", "digits"),
@@ -1254,27 +1251,31 @@ names_option <- function(rslt_all) {
 }
 
 
-#' @description Kopie von interaction()
-#'  die Labels werden anderst sortiert.
-#'
-#'  i lauft in umgekehrter richtung und past ist auch umgedreht
-#'  ansonsten identich mit interaction
-#'
-#' @param ...	the factors for
-#' @param sep	string to construct the new level labels by joining the constituent ones.
-#'
-#' @examples
-#'  \donttest{
-#' interaction2(
-#' gl(2, 8, labels = c("Z", "X")),
-#' gl(2, 8, labels = c( "A","B")),
-#' gl(2, 8, labels = c( "a","b"))
-#' )
-#' }
+# @description Kopie von interaction()
+# die Labels werden anderst sortiert.
+#
+# i lauft in umgekehrter richtung und past ist auch umgedreht
+# ansonsten identich mit interaction
+#
+#@param ...	the factors for
+#@param sep	string to construct the new level labels by joining the constituent ones.
+#
+#@examples
+# \donttest{
+#interaction2(
+#gl(2, 8, labels = c("Z", "X")),
+#gl(2, 8, labels = c( "A","B")),
+#gl(2, 8, labels = c( "a","b"))
+#)
+# }
+ 
+#' Copy of base::interaction
 #' @noRd
 interaction2 <- function(...,
-                         sep = "_") {
+                         sep = "_",
+                         rev_order = FALSE) {
   args <- list(...)
+  #  print(args)
   narg <- length(args)
   if (narg < 1L)
     stop("No factors specified")
@@ -1282,22 +1283,25 @@ interaction2 <- function(...,
     args <- args[[1L]]
     narg <- length(args)
   }
-
+  
   for (i in 1L:narg) {
     f <- as.factor(args[[i]])[, drop = FALSE]
     l <- levels(f)
     if1 <- as.integer(f) - 1L
-
+    
     if (i == 1) {
       ans <- if1
       lvs <- l
     }
     else {
       ans <- ans * length(l) + if1
-      lvs <- paste(rep(lvs, each = length(l)),
-                   rep(l, length(lvs)),
-                   sep = sep)
-
+      
+      
+      if (rev_order)
+        lvs <- paste(rep(l, length(lvs)), rep(lvs, each = length(l)), sep = sep)
+      else
+        lvs <- paste(rep(lvs, each = length(l)), rep(l, length(lvs)), sep = sep)
+      
       if (anyDuplicated(lvs)) {
         ulvs <- unique(lvs)
         while ((i <- anyDuplicated(flv <- match(lvs,  ulvs)))) {
@@ -1309,13 +1313,14 @@ interaction2 <- function(...,
       }
     }
   }
+ # print(lvs)
   structure(as.integer(ans + 1L),
             levels = lvs,
             class = "factor")
 }
 
-#' liste als DF
-#'
+# liste als DF
+
 #' @noRd
 list_rbind <- function(l)
   as.data.frame(do.call(rbind, (l)))

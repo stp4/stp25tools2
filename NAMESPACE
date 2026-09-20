@@ -77,6 +77,7 @@ export(Long_rbind)
 export(Mean)
 export(Median)
 export(Offen)
+export(P_adjust)
 export(Percent)
 export(Praevalenz)
 export(Rbind2)
@@ -89,6 +90,7 @@ export(Tbll.summary.table)
 export(Tbll_anova)
 export(Tbll_corr)
 export(Tbll_desc)
+export(Tbll_desc_freq)
 export(Tbll_desc_grouped)
 export(Tbll_effect)
 export(Tbll_likert)
@@ -110,6 +112,7 @@ export(auto_plot)
 export(auto_test)
 export(bw_theme)
 export(calc_weight)
+export(calculate_sigmoid_ci)
 export(capture_print)
 export(clean_character)
 export(contr.Helmert)
@@ -141,6 +144,7 @@ export(ggplot_theme)
 export(gsub_label)
 export(init_stp25_options)
 export(marginal_plot)
+export(model_perf)
 export(multi_barplot)
 export(multi_matrix_plot)
 export(my_theme)
@@ -151,14 +155,22 @@ export(prepare_consort)
 export(prepare_data)
 export(prepare_output)
 export(prepare_upset_data)
+export(re_scale_0_100)
+export(re_scale_log)
+export(re_scale_sigmoid)
 export(read_text_table)
+export(reg_definitions)
 export(render_f)
 export(render_sigf)
 export(reorder2)
 export(reset_contrasts)
 export(reset_lattice)
 export(save_codebook)
+export(scale_0_100)
 export(scale_fill_likert)
+export(scale_guess)
+export(scale_log)
+export(scale_sigmoid)
 export(set_label)
 export(set_lattice)
 export(set_opt)
@@ -173,113 +185,150 @@ import(consort)
 import(ggplot2)
 import(grid)
 import(rlang)
-importFrom(ComplexUpset,intersection_size)
-importFrom(ComplexUpset,upset)
-importFrom(ComplexUpset,upset_set_size)
-importFrom(car,Anova)
-importFrom(car,contr.Helmert)
-importFrom(car,contr.Sum)
-importFrom(car,contr.Treatment)
+importFrom(ComplexUpset,
+  intersection_size,
+  upset,
+  upset_set_size
+)
+importFrom(car,
+  Anova,
+  contr.Helmert,
+  contr.Sum,
+  contr.Treatment
+)
 importFrom(caret,confusionMatrix)
 importFrom(cowplot,plot_grid)
-importFrom(dplyr,across)
-importFrom(dplyr,bind_cols)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,case_when)
-importFrom(dplyr,full_join)
-importFrom(dplyr,mutate)
-importFrom(effects,allEffects)
-importFrom(effects,effect)
-importFrom(effects,predictorEffects)
+importFrom(dplyr,
+  across,
+  arrange,
+  bind_cols,
+  bind_rows,
+  case_when,
+  distinct,
+  full_join,
+  group_by,
+  mutate,
+  select
+)
+importFrom(effects,
+  allEffects,
+  effect,
+  predictorEffects
+)
 importFrom(forcats,fct_rev)
-importFrom(ggplot2,aes)
-importFrom(ggplot2,coord_flip)
-importFrom(ggplot2,facet_grid)
-importFrom(ggplot2,geom_col)
-importFrom(ggplot2,geom_text)
-importFrom(ggplot2,ggplot)
-importFrom(ggplot2,ggplot_add)
-importFrom(ggplot2,labs)
-importFrom(ggplot2,scale_fill_manual)
-importFrom(ggplot2,scale_y_continuous)
-importFrom(ggplot2,theme_bw)
-importFrom(ggplot2,ylab)
+importFrom(ggplot2,
+  aes,
+  coord_flip,
+  facet_grid,
+  geom_col,
+  geom_text,
+  ggplot,
+  ggplot_add,
+  labs,
+  scale_fill_manual,
+  scale_y_continuous,
+  theme_bw,
+  ylab
+)
 importFrom(glue,glue)
-importFrom(grDevices,grey.colors)
-importFrom(grDevices,hsv)
-importFrom(grDevices,rgb)
+importFrom(grDevices,
+  grey.colors,
+  hsv,
+  rgb
+)
 importFrom(gridExtra,grid.arrange)
 importFrom(haven,read_sav)
-importFrom(insight,find_interactions)
-importFrom(insight,find_response)
-importFrom(insight,format_table)
+importFrom(insight,
+  find_interactions,
+  find_response,
+  find_variables,
+  format_table
+)
 importFrom(knitr,pandoc_to)
-importFrom(lattice,barchart)
-importFrom(lattice,bwplot)
-importFrom(lattice,dotplot)
-importFrom(lattice,histogram)
-importFrom(lattice,lattice.getOption)
-importFrom(lattice,lattice.options)
-importFrom(lattice,standard.theme)
-importFrom(lattice,stripplot)
-importFrom(lattice,trellis.par.set)
-importFrom(lattice,xyplot)
+importFrom(lattice,
+  barchart,
+  bwplot,
+  dotplot,
+  histogram,
+  lattice.getOption,
+  lattice.options,
+  standard.theme,
+  stripplot,
+  trellis.par.set,
+  xyplot
+)
 importFrom(latticeExtra,marginal.plot)
 importFrom(parameters,model_parameters)
 importFrom(performance,model_performance)
-importFrom(plyr,alply)
-importFrom(plyr,is.formula)
-importFrom(purrr,map)
-importFrom(purrr,map2)
+importFrom(plyr,
+  alply,
+  is.formula
+)
+importFrom(purrr,
+  `%||%`,
+  map,
+  map2,
+  map_dbl
+)
 importFrom(readxl,read_excel)
-importFrom(rlang,"!!")
-importFrom(rlang,as_label)
-importFrom(rlang,as_name)
-importFrom(rlang,caller_env)
-importFrom(rlang,enquo)
-importFrom(rlang,enquos)
-importFrom(rlang,eval_tidy)
-importFrom(rlang,expr)
-importFrom(rlang,f_rhs)
-importFrom(rlang,get_expr)
-importFrom(rlang,is_call)
-importFrom(rlang,is_formula)
-importFrom(rlang,quo_get_expr)
-importFrom(rlang,quo_squash)
-importFrom(rlang,sym)
-importFrom(scales,percent)
-importFrom(scales,percent_format)
-importFrom(stats,IQR)
-importFrom(stats,aggregate)
-importFrom(stats,as.formula)
-importFrom(stats,binom.test)
-importFrom(stats,binomial)
-importFrom(stats,formula)
-importFrom(stats,glm)
-importFrom(stats,lm)
-importFrom(stats,logLik)
-importFrom(stats,median)
-importFrom(stats,na.omit)
-importFrom(stats,na.pass)
-importFrom(stats,nobs)
-importFrom(stats,pchisq)
-importFrom(stats,qnorm)
-importFrom(stats,quantile)
-importFrom(stats,reorder)
-importFrom(stats,sd)
-importFrom(stats,xtabs)
-importFrom(stringr,str_extract)
-importFrom(stringr,str_remove_all)
-importFrom(stringr,str_split)
-importFrom(stringr,str_split_fixed)
-importFrom(stringr,str_starts)
-importFrom(stringr,str_trim)
+importFrom(rlang,
+  "!!",
+  as_label,
+  as_name,
+  caller_env,
+  enquo,
+  enquos,
+  eval_tidy,
+  expr,
+  f_rhs,
+  get_expr,
+  is_call,
+  is_formula,
+  quo_get_expr,
+  quo_squash,
+  sym
+)
+importFrom(scales,
+  percent,
+  percent_format
+)
+importFrom(stats,
+  IQR,
+  aggregate,
+  as.formula,
+  binom.test,
+  binomial,
+  formula,
+  glm,
+  lm,
+  logLik,
+  median,
+  na.omit,
+  na.pass,
+  nobs,
+  pchisq,
+  qnorm,
+  quantile,
+  reorder,
+  sd,
+  xtabs
+)
+importFrom(stringr,
+  str_extract,
+  str_remove_all,
+  str_split,
+  str_split_fixed,
+  str_starts,
+  str_trim
+)
 importFrom(tibble,as_tibble)
 importFrom(tidyselect,all_of)
-importFrom(utils,head)
-importFrom(utils,modifyList)
-importFrom(utils,read.table)
-importFrom(utils,str)
-importFrom(utils,type.convert)
+importFrom(utils,
+  head,
+  modifyList,
+  read.table,
+  str,
+  type.convert
+)
 importFrom(vcd,assocstats)
 importFrom(yaml,read_yaml)
