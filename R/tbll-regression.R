@@ -85,7 +85,10 @@
 #' binom <- glm(vs ~ poly(mpg, 2) + cyl, data = mtcars, family = binomial())
 #'
 #' # Grundlegende Verwendung
-#' Tbll_regression(ols = ols, binom = binom)
+#' Tbll_regression(ols = ols, binom = binom) -> rslt
+#' 
+#' # Results as MD for the use with LLM
+#' attr(rslt, "tbll_rslt")
 #'
 #' # Erweiterte Optionen
 #' Tbll_regression(
@@ -142,24 +145,46 @@ Tbll_regression <- function(...,
                                       include.gof = TRUE,
                                       model_names =NULL,
                                       digits= 2,
-                                      gof_vars = c("AIC", "AICc", "BIC",
-                                                    "R2", "R2_adjusted", "Tjurs_R2",
+                            data = NULL, caption = "Regression",
+                            
+                                      gof_vars = c("AIC", "BIC",
+                                                    "R2", "R2_adjusted", 
+                                                   "R2_Tjur",
                                                     "RMSE", "Sigma", "Obs")
                                       ) {
 
   models <- list(...)
-  number_models <- length(models)
-  # Modellnamen generieren
-  if (is.null(model_names) | number_models != length(model_names)) {
-    model_names <- if (!is.null(names(models))) {
-      names(models)
-    } else {
-      paste0("m", seq_along(models))
-    }
+  number_models <- length(models) 
+  
+  # # Modellnamen generieren
+  # if (is.null(model_names) | number_models != length(model_names)) {
+  #   model_names <- if (!is.null(names(models))) {
+  #     names(models)
+  #   } else {
+  #     paste0("m", seq_along(models))
+  #   }
+  # }
+  model_names <- model_names %||% names(models) %||% paste0("m", seq_along(models))
+ 
+  tbll_rslt <- list(
+    variable_definitions = NULL,
+    parameters = NULL,
+    gof = NULL,
+    model_names = model_names
+  )
+  
+  
+  
+  
+  if (!is.null(data)) {
+    tbll_rslt$variable_definitions <- reg_definitions(
+      models = models,
+      model_names = model_names,
+      data = data,
+      caption = caption
+    )
   }
-
-
-#  print(model_names)
+  
   # Dynamisch verfügbare Parameter-Variablen generieren
   param_vars <-  "Parameter"
   if (include.b) param_vars <- c(param_vars, "Coefficient")
@@ -172,50 +197,44 @@ Tbll_regression <- function(...,
   if (include.p) param_vars <- c(param_vars, "p")
 
 
-   # GOF (Goodness of Fit) Statistiken
+
   model_gof <- NULL
 
   if (include.gof) {
-
-    for (i in seq_along(models)) {
-      model <- models[[i]]
-        gof <- render_f(performance::model_performance(model), 2)
-
-         gof$Obs  <- as.character(nobs(model))
-        #  print(str(gof))
-
-        if (i == 1) {
-          model_gof <- gof
-        } else {
-          model_gof <- dplyr::bind_rows(model_gof, gof)
-        }
-    }
-    # Nur verfügbare GOF-Variablen behalten
-    gof_vars <- intersect(gof_vars, names(model_gof))
-    model_gof <- model_gof[gof_vars]
-    model_gof <- t(model_gof)
-    # colnames(model_gof) <- model_names
-    model_gof <- cbind(data.frame(Parameter = gof_vars), model_gof)
-
-  }
-
-  #print(model_gof)
-
-  # Parameter-Extraktion
-  model_param <- NULL
-  model_info <- list()
-  if (include.param) {
+    # Alternative compare_performance 
+    tbll_rslt$gof <- Map(model_perf, models)
+    tbll_rslt$gof <-
+      dplyr::bind_cols(Model = model_names, 
+                       dplyr::bind_rows(tbll_rslt$gof))
+    gof_vars <- intersect(gof_vars, names(tbll_rslt$gof))
     
+    model_gof <-  tbll_rslt$gof[gof_vars]
+    tbll_rslt$gof <- 
+      tbll_rslt$gof[c("Model",
+                     # "Response", "algorithm" , 
+                      "family", gof_vars)] |> 
+      insight::export_table(format = "markdown",
+                            caption = "Model Fit Statistics")
+
+    # switch to vertical layout
+    model_gof <- t(model_gof)
+    model_gof <- cbind(data.frame(Parameter = gof_vars), model_gof)
+    }
+    
+ # Parameter-Extraktion
+  model_param <- NULL
+  if (include.param) {
     for (i in seq_along(models)) {
       # Modelltyp bestimmen
       model <- models[[i]]
       model_class <- class(model)[1]
       #  model_family <- if ("glm" %in% class(model)) model$family$family else NULL
-      is_logistic <- model_class == "glm"# && !is.null(model_family) && model_family == "binomial"
-
-
+      is_logistic <- model_class == "glm"
+      # && !is.null(model_family) && model_family == "binomial"
       model_name <- model_names[i]
       param_raw <- parameters::model_parameters(model)
+      
+     # print(param_raw)
       param <-
         tibble::as_tibble(
           insight::format_table(
@@ -228,9 +247,12 @@ Tbll_regression <- function(...,
             ci_brackets = TRUE,
             ci_digits = digits,
             p_digits = 3,
-            rope_digits = digits,))
+            rope_digits = digits))
+      
+        # print(param)
 
-
+   
+   
         # Standardized Coefficients (nur für lm-Modelle sinnvoll)
       if (include.beta && model_class == "lm") {
             param_std <-  parameters::model_parameters(model, standardize = "refit")
@@ -239,9 +261,10 @@ Tbll_regression <- function(...,
 
         # Odds Ratios (nur für logistische Regression)
       if (include.odds && is_logistic) {
-        param_odds <-
-          insight::standardize_names(parameters::model_parameters(
-            model, exponentiate = TRUE))
+        param_odds <- 
+          model |> 
+          parameters::model_parameters(exponentiate = TRUE) |>
+          insight::standardize_names()
         param$OR <- format_odds_ratio(param_odds$Coefficient, 2)
         # Odds Ratio Confidence Intervals
         if (include.odds.ci)
@@ -249,37 +272,52 @@ Tbll_regression <- function(...,
       }
 
         # Sterne hinzufügen
-      if (include.stars ) {
+      if (include.stars) {
          if(include.odds && is_logistic)
-           param$OR <- add_significance_stars( param$OR, param$p)
+           param$OR <- add_significance_stars(param$OR, param$p)
          else if (include.b)
-           param$Coefficient <- add_significance_stars( param$Coefficient, param$p)
+           param$Coefficient <- add_significance_stars(param$Coefficient, param$p)
         }
 
-
-     param_vars_temp <- intersect(param_vars, names(param))
+   
+      
+      paramx <- attributes(param)  
+      param_vars_temp <- intersect(param_vars, names(param))
+      
+      tbll_rslt$parameters[[model_name]] <- 
+        param |>
+        insight::export_table(
+          format = "markdown",
+          caption = paste0( #"Regression",
+            "**",model_name,"**",
+            " (Outcome: ",    Response = as.character(insight::find_response(model)),")" 
+          #  "; Model Call: ", paste(as.character(paramx$model_call), collapse = ", "),
+          #  "; Test Statistic: ", paramx$test_statistic
+          )
+        )
+ 
+   
      param <- param[param_vars_temp]
+     
      if(number_models > 1) names(param) <- 
        c(param_vars_temp[1], paste0(model_name, "_", param_vars_temp[-1]))
 
+         
+     # model_info[[model_name]] <- list(
+     #   statistic = paste(param_vars_temp[-1], collapse = ", "),
+     #   test_statistic = paramx$test_statistic,
+     #   model_class = paste(paramx$model_class, collapse = ", "),
+     #   linear_model = paramx$linear_model,
+     #   mixed_model = paramx$mixed_model,
+     #   ordinal_model = paramx$ordinal_model,
+     #   log_link = paramx$log_link,
+     #   logit_link = paramx$logit_link,
+     #   ci_method = paramx$ci_method,
+     #   ci = paramx$ci,
+     #   model_call = paste(as.character(paramx$model_call), collapse = ", "),
+     #   software = "parameters::model_parameters()"
+     # )
      
-     
-     paramx <- attributes(param)
-     model_info[[model_name]] <- list(
-       statistic = paste(param_vars_temp[-1], collapse = ", "),
-       test_statistic = paramx$test_statistic,
-       model_class = paste(paramx$model_class, collapse = ", "),
-       linear_model = paramx$linear_model,
-       mixed_model = paramx$mixed_model,
-       ordinal_model = paramx$ordinal_model,
-       log_link = paramx$log_link,
-       logit_link = paramx$logit_link,
-       ci_method = paramx$ci_method,
-       ci = paramx$ci,
-       model_call = paste(as.character(paramx$model_call), collapse = ", "),
-       software = "parameters::model_parameters()"
-     )
-    
     # Mergen mit vorherigen Modellen
      if (i == 1)
        model_param <-  param
@@ -291,26 +329,18 @@ Tbll_regression <- function(...,
 
   # Ergebnisse zusammenfügen
   if (include.gof & include.param) {
-
     if(number_models > 1) names(model_gof) <-
       c(param_vars[1], paste0(model_names, "_", param_vars[2]))
     else  names(model_gof) <- param_vars[1:2]
 
    rslt <-  dplyr::bind_rows(model_param, c(Parameter = "Goodnes of fit"), model_gof)
-  
- 
   }
-  else if (include.param)
-    rslt <- model_param
-  else
-    return(model_gof)
+  else if (include.param){rslt <- model_param}
+  else{return(model_gof)}
   
-  
-    attr(rslt, "stp25") <- "tbll_regression"
-    attr(rslt, "model_info") <-  model_info
-    
-    
-    return(rslt) 
+  attr(rslt, "stp25") <- "tbll_regression"
+  attr(rslt, "tbll_rslt") <-  tbll_rslt
+  return(rslt) 
 }
 
 # Funktion zum Hinzufügen von Sternen
@@ -370,6 +400,28 @@ format_odds_ci <- function(ci_low, ci_high, digits = 2) {
 }
 
 
+#' @rdname Tbll_regression
+#' @description   Model Performance
+#' Stolen from performance::model_performance
+#'
+#' @param x Statistical model.
+#'
+#' @export
+#'
+model_perf <- function(x) {
+  gof <- performance::model_performance(x)
+  gof <- render_f(gof, 2)
+  gof$Obs  <- as.character(nobs(x))
+  model <- data.frame(
+   # Response = as.character(insight::find_response(x)),
+  #  algorithm = unlist(insight::find_algorithm(x)),
+    family = insight::get_family(x)[[1]],
+    row.names = NULL
+  )
+  dplyr::bind_cols(model, gof)
+}
 
 
 
+
+ 
