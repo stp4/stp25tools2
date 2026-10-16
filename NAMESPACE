@@ -20,6 +20,12 @@ S3method(Long,data.frame)
 S3method(Long,formula)
 S3method(Offen,character)
 S3method(Offen,data.frame)
+S3method(Tbll,anova)
+S3method(Tbll,aov)
+S3method(Tbll,default)
+S3method(Tbll,estimate_contrasts)
+S3method(Tbll,estimate_slopes_summary)
+S3method(Tbll,summary.table)
 S3method(Tbll_xtabs,default)
 S3method(Tbll_xtabs,glm)
 S3method(Tbll_xtabs_2x2,data.frame)
@@ -86,7 +92,7 @@ export(Summarise_likert)
 export(Summarise_likert_long)
 export(Summarise_likert_wide)
 export(Summarise_multi)
-export(Tbll.summary.table)
+export(Tbll)
 export(Tbll_anova)
 export(Tbll_contrasts)
 export(Tbll_corr)
@@ -191,6 +197,7 @@ importFrom(ComplexUpset,
   upset,
   upset_set_size
 )
+importFrom(broom,tidy)
 importFrom(car,
   Anova,
   contr.Helmert,

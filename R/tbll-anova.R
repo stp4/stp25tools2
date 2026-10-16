@@ -217,14 +217,12 @@ Tbll_anova <-
 
 
 
-#' Contraste 
+#' @rdname Tbll_anova
 #' 
-#' Post-Hoc-Tests mit ANOVA
-#' 
-#' Alternative TukeyHSD(anova_model, conf.level=.95)
-#' 
-#' library(multcomp) 
-#' glht(anova_model, linfct = mcp(group = "Dunnett"))
+#' @description
+#' Contraste:
+#' Post-Hoc-Tests fuer ANOVA und OLS. 
+#' Alternative: TukeyHSD,  multcomp::glht 
 #'
 #' @param x lm -Objekt
 #' @param ... an estimate_contrasts p_adjust = "bonferroni"
@@ -234,6 +232,8 @@ Tbll_anova <-
 #' @export
 #' @seealso
 #' \code{\link[modelbased]{estimate_contrasts}}
+#' \code{\link[modelbased]{estimate_slopes}}
+#' 
 #'
 #' @export
 #' @importFrom modelbased estimate_contrasts
@@ -244,25 +244,43 @@ Tbll_anova <-
 #' #modelbased::estimate_contrasts(model)
 #' Tbll_contrasts(model, p_adjust = "bonferroni")
 #' 
+#' 
+#' model <- lm(Sepal.Width ~ Species * Petal.Length, data = iris)
+#' # Compute the marginal effect of Petal.Length at each level of Species
+#' slopes <- modelbased::estimate_slopes(model, slope = "Petal.Length", by = "Species")
+#' slopes |> Tbll()
+#' 
+#' 
 Tbll_contrasts <- function(x, ..., digits = 2) {
   if (!inherits(x, "estimate_contrasts")) {
     x <- modelbased::estimate_contrasts(x, ...)
   }
   
-  rslt <-  as.data.frame(x)
-  rslt[which(names(rslt) == "SE")] <- NULL
-  
-  rslt$p <- rndr_P(rslt$p, include.symbol = FALSE)
-  rslt$df <- render_f(rslt$df, digits = 0)
-  is_num <-  which(sapply (rslt, is.numeric))
-  rslt[is_num] <- render_f(rslt[is_num], digits = digits)
-  
-  prepare_output(rslt,
-                 caption =  attr(x, "table_titel")[1],
-                 note =  attr(x, "table_footer")[1])
-  
+  Tbll.estimate_contrasts(x, digits = digits)
+
 }
 
+#' @export
+Tbll.estimate_contrasts <- function(x,
+                                    include.se = FALSE,
+                                    digits = 2) {
+  rslt <- as.data.frame(x)
+  if (!include.se)
+    rslt[which(names(rslt) == "SE")] <- NULL
+  
+  rslt$p <- rndr_P(rslt$p, include.symbol = FALSE)
+  if (any(names(rslt) == "df"))
+    rslt$df <- render_f(rslt$df, digits = 0)
+  is_num <-  which(sapply (rslt, is.numeric))
+  rslt[is_num] <- render_f(rslt[is_num], digits = digits)
+  rslt |>
+    prepare_output(caption =  attr(x, "table_titel")[1],
+                   note =  attr(x, "table_footer")[1])
+}
+
+#' @export
+Tbll.estimate_slopes_summary  <- function(...)
+  Tbll.estimate_contrasts(...)
 
 # helper
 extract_param_aov <- function(x,
@@ -338,3 +356,11 @@ extract_param_aov <- function(x,
   
 }
 
+
+#' @export
+Tbll.aov  <- function(x, es_type = "eta", type = 3, ...)
+  extract_param_aov(x, es_type = "eta", type = 3, ...)
+
+#' @export
+Tbll.anova  <- function(x, es_type = "eta", type = 3, ...)
+  extract_param_aov(x, es_type = "eta", type = 3, ...)
