@@ -88,6 +88,7 @@ export(Summarise_likert_wide)
 export(Summarise_multi)
 export(Tbll.summary.table)
 export(Tbll_anova)
+export(Tbll_contrasts)
 export(Tbll_corr)
 export(Tbll_desc)
 export(Tbll_desc_freq)
@@ -258,6 +259,7 @@ importFrom(lattice,
   xyplot
 )
 importFrom(latticeExtra,marginal.plot)
+importFrom(modelbased,estimate_contrasts)
 importFrom(parameters,model_parameters)
 importFrom(performance,model_performance)
 importFrom(plyr,
@@ -265,7 +267,7 @@ importFrom(plyr,
   is.formula
 )
 importFrom(purrr,
-  `%||%`,
+  "%||%",
   map,
   map2,
   map_dbl

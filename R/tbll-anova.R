@@ -215,6 +215,56 @@ Tbll_anova <-
   }
 
 
+
+
+#' Contraste 
+#' 
+#' Post-Hoc-Tests mit ANOVA
+#' 
+#' Alternative TukeyHSD(anova_model, conf.level=.95)
+#' 
+#' library(multcomp) 
+#' glht(anova_model, linfct = mcp(group = "Dunnett"))
+#'
+#' @param x lm -Objekt
+#' @param ... an estimate_contrasts p_adjust = "bonferroni"
+#' @param digits Nachkommastellen
+#'
+#' @returns data.frame
+#' @export
+#' @seealso
+#' \code{\link[modelbased]{estimate_contrasts}}
+#'
+#' @export
+#' @importFrom modelbased estimate_contrasts
+#' @examples
+#' 
+#' model <- lm(Sepal.Width ~ Species, data = iris)
+#' #car::Anova( model)
+#' #modelbased::estimate_contrasts(model)
+#' Tbll_contrasts(model, p_adjust = "bonferroni")
+#' 
+Tbll_contrasts <- function(x, ..., digits = 2) {
+  if (!inherits(x, "estimate_contrasts")) {
+    x <- modelbased::estimate_contrasts(x, ...)
+  }
+  
+  rslt <-  as.data.frame(x)
+  rslt[which(names(rslt) == "SE")] <- NULL
+  
+  rslt$p <- rndr_P(rslt$p, include.symbol = FALSE)
+  rslt$df <- render_f(rslt$df, digits = 0)
+  is_num <-  which(sapply (rslt, is.numeric))
+  rslt[is_num] <- render_f(rslt[is_num], digits = digits)
+  
+  prepare_output(rslt,
+                 caption =  attr(x, "table_titel")[1],
+                 note =  attr(x, "table_footer")[1])
+  
+}
+
+
+# helper
 extract_param_aov <- function(x,
                               es_type,
                               type,
