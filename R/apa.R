@@ -291,11 +291,18 @@ APA.ScalarIndependenceTest <- function(x,
 
 #' @rdname APA
 #' @export
-APA.numeric <- function(x, ...)
-  calc_mean(x, ...)
-
-
-
+APA.numeric <- function(x, ...) {
+  alpha <- attr(x, "raw_alpha")
+  if (is.null(alpha))
+    calc_mean(x, ...)
+  else { # das ist fuer Index
+    nm <- attr(x, "label")
+    if (is.null(nm))
+      paste0("M = ", calc_mean(x), ", Alpha = ", alpha)
+    else
+      paste0(nm, ": M = ", calc_mean(x), ", Alpha = ", alpha)
+  }
+}
 
 
 #' @rdname APA

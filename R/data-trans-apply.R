@@ -279,23 +279,24 @@ fix_sosci <- function(data,
 #'
 #' @examples
 #' # Beispiel: Bildung eines Index aus mehreren Items
-#' Anamnesebogen <- Anamnesebogen |>
-#'   mutate(
-#'     wechsel = Index(
-#'       hitzewallungen.schwitzen,
-#'       depressive.verstimmungen,
-#'       reizbarkeit,
-#'       angstlichkeit,
-#'       herzbeschwerden,
-#'       vergesslichkeit,
-#'       haarausfall
-#'     )
-#'   )
-#'
-#' Anamnesebogen$wechsel
+#' 
+#'   require(dplyr)
+#'   set.seed(1)
+#'   Anamnesebogen <- data.frame(
+#'     x = c(1, 2, 3, 4, 5, 1, 2, 3, 4, 5),
+#'     y = c(2, 2, 3, 4, 4, 3, 4, 5, 4, 2),
+#'     z = c(3, 5, 1, 2, 3, 2, 3, 4, 4, 5),
+#'     w = c(4, 2, 3, 5, 2, 4, 5, 4, 1, 1)
+#'   ) |>
+#'     mutate(wechsel = Index(x, y, z, w, re_code = c(2, 4))) |>
+#'     Label(wechsel = "Wchselbeschwerden")
+#'   
+#'   
+#'   APA(Anamnesebogen$wechsel)
+#'  
 Index <- function(...,
                   na.rm = TRUE,
-                  as_percent = TRUE,
+                  as_percent = NULL,
                   fun = mean,
                   digits = 2,
                   re_code = NULL,
@@ -313,26 +314,46 @@ Index <- function(...,
     })
   }
   
-  
-  if (is.na(min_level) &
-      is.na(max_level) & is.factor(dots[[1]])) {
+  if(is.factor(dots[[1]]) ){
+    if(is.null(as_percent))  as_percent = TRUE
+  if (is.na(min_level) & is.na(max_level)) {
     min_level <- 1
     max_level <-  nlevels(dots[[1]])
   }
-  dots <- sapply(dots, as.numeric)
+
+  }
+  else if(is.numeric(dots[[1]]) ){
+    if(is.null(as_percent))  as_percent = FALSE
+    if (is.na(min_level) & is.na(max_level)) {
+      min_level <- min( sapply(dots, min, na.rm=TRUE) )
+      max_level <-  max( sapply(dots, max, na.rm=TRUE) )
+    }
+
+  }  
+  else{
+      stop( "Unbekannte Daten")
+    }
     
-  
+   dots <- sapply(dots, as.numeric) 
   if (is.numeric(re_code))
     dots <- Umcodieren(dots, re_code, min_level, max_level)
+  
+  psych <- psych::alpha(dots, check.keys = FALSE, na.rm = TRUE)
+ 
   
   dots <-  apply(dots, 1, fun, na.rm = na.rm)
   if (as_percent) {
     dots <-  (dots - min_level) / (max_level - min_level)
     
   }
-  
+  attr(dots, "raw_alpha") <- render_f(as.numeric(psych$total$raw_alpha), 2)
   round(dots, digits)
 }
+
+
+ 
+
+
 #' @noRd
 Umcodieren <- function(x,
                        re_code,
