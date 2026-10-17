@@ -290,7 +290,7 @@ extract_param_aov <- function(x,
                               include.meansq = FALSE,
                               include.power = FALSE,
                               ...) {
-
+note <- ""
   # hier kommt ein car::Anova - Objekt
   if (inherits(x, "anova")) {
     response <- ""
@@ -309,11 +309,13 @@ extract_param_aov <- function(x,
      }
   # lm - objekt
   if (!(inherits(x, "aov")) & inherits(x, "lm")) {
+    note <- APA(x)
     
     if (type == 1)
       x <- anova(x)
     else
       x <- car::Anova(x, type = type)
+      
 
     rslt <-
       parameters::model_parameters(x,
@@ -350,9 +352,10 @@ extract_param_aov <- function(x,
   if (!include.sumsq)
     rslt <-  rslt[!(names(rslt) %in% "Sum_Squares")]
   
-  prepare_output(dplyr::relocate(rslt, p, .after = dplyr::last_col()),
-                 caption = paste0("Anova ", anova_type, response)
-                 )
+  prepare_output(
+    dplyr::relocate(rslt, p, .after = dplyr::last_col()),
+    caption = paste0("Anova ", anova_type, response),
+    note = note)
   
 }
 
