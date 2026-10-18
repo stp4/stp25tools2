@@ -209,8 +209,8 @@ Tbll_desc <-
   ) {
   
     X <- prepare_data(...)
-    if (!is.null(digits)){
-      X$digits <- digits
+    if (!is.null(digits) & is.numeric(digits[1])){
+      X$digits <- rep(digits[1], length.out = length(X$measure.vars)) 
       names(X$digits) <- X$measure.vars
     }
     
