@@ -255,7 +255,7 @@ fix_sosci <- function(data,
 #' @param na.rm Logisch. Sollen fehlende Werte bei der Berechnung
 #'   ignoriert werden? Standard ist TRUE.
 #' @param as_percent Logisch. Soll der Index auf den Bereich 0–1
-#'   skaliert werden? Standard ist TRUE.
+#'   skaliert werden? Standard ist TRUE bei factor und FALSE bei numeric.
 #' @param fun Aggregationsfunktion zur Bildung des Index
 #'   (z. B. mean, median oder sum). Standard ist mean mit as_percent.
 #' @param digits Anzahl der Nachkommastellen für das Ergebnis.
@@ -268,7 +268,8 @@ fix_sosci <- function(data,
 #'   wenn nicht angegeben.
 #'   @param na.strings numeric oder charachter level wie zb nicht ausgewaehlt 
 #'
-#' @returns Ein numerischer Vektor mit dem berechneten Index.
+#' @returns Ein numerischer Vektor mit dem berechneten Index. 
+#' Mit Cronbachs alpha in den Attributen.
 #'
 #' @details
 #' Faktoren werden automatisch in numerische Werte umgewandelt.
@@ -291,64 +292,106 @@ fix_sosci <- function(data,
 #'     mutate(wechsel = Index(x, y, z, w, re_code = c(2, 4))) |>
 #'     Label(wechsel = "Wchselbeschwerden")
 #'   
-#'   
-#'   APA(Anamnesebogen$wechsel)
+#' APA(Anamnesebogen$wechsel)
 #'  
-Index <- function(...,
-                  na.rm = TRUE,
-                  as_percent = NULL,
-                  fun = mean,
-                  digits = 2,
-                  re_code = NULL,
-                  min_level = NA,
-                  max_level = NA,
-                  na.strings = NULL
-                  ) {
-  dots <- list(...)
-  
-  if (!is.null(na.strings)) {
-    if (is.character(na.strings))
-      na.strings <- which(levels(dots[[1]]) == na.strings)
-    dots <- lapply(dots, function(x) {
-      factor(x, levels(x)[-na.strings])
-    })
-  }
-  
-  if(is.factor(dots[[1]]) ){
-    if(is.null(as_percent))  as_percent = TRUE
-  if (is.na(min_level) & is.na(max_level)) {
-    min_level <- 1
-    max_level <-  nlevels(dots[[1]])
+  Index <- function(...) {
+    UseMethod("Index")
   }
 
+#' @export  
+  Index.data.frame <- function(x,
+                                ...,
+                                re_code = NULL,
+                                fun = mean,
+                                digits = 2,
+                                as_percent = NULL,
+                                min_level = NA,
+                                max_level = NA,
+                                center_levels = NULL,
+                                include.alpha = TRUE,
+                                na.rm = TRUE,
+                                na.strings = NULL) {
+    Index.default(
+      re_code = re_code,
+      fun = fun,
+      digits = digits,
+      as_percent = as_percent,
+      min_level = min_level,
+      max_level = max_level,
+      center_levels = center_levels,
+      include.alpha = include.alpha,
+      na.rm = na.rm,
+      na.strings = na.strings,
+      data = prepare_data(x, ...)$data
+    )
   }
-  else if(is.numeric(dots[[1]]) ){
-    if(is.null(as_percent))  as_percent = FALSE
-    if (is.na(min_level) & is.na(max_level)) {
-      min_level <- min( sapply(dots, min, na.rm=TRUE) )
-      max_level <-  max( sapply(dots, max, na.rm=TRUE) )
-    }
 
-  }  
-  else{
-      stop( "Unbekannte Daten")
+  #' @export    
+  Index.default <- function(...,
+                             re_code = NULL,
+                             fun = mean,
+                             digits = 2,
+                             as_percent = NULL,
+                             min_level = NA,
+                             max_level = NA,
+                             center_levels = NULL,
+                             include.alpha = TRUE,
+                             na.rm = TRUE,
+                             na.strings = NULL,
+                             data = NULL) {
+    if(is.null(data)) data <- list(...)
+    
+    if (!is.null(na.strings)) {
+      if (is.character(na.strings))
+        na.strings <- which(levels(data[[1]]) == na.strings)
+      data <- lapply(data, function(x) {
+        factor(x, levels(x)[-na.strings])
+      })
     }
     
-   dots <- sapply(dots, as.numeric) 
-  if (is.numeric(re_code))
-    dots <- Umcodieren(dots, re_code, min_level, max_level)
-  
-  psych <- psych::alpha(dots, check.keys = FALSE, na.rm = TRUE)
- 
-  
-  dots <-  apply(dots, 1, fun, na.rm = na.rm)
-  if (as_percent) {
-    dots <-  (dots - min_level) / (max_level - min_level)
+    if (is.factor(data[[1]])) {
+      if (is.null(as_percent))
+        as_percent = TRUE
+      if (is.na(min_level) & is.na(max_level)) {
+        min_level <- 1
+        max_level <-  nlevels(data[[1]])
+      }
+    }
+    else if (is.numeric(data[[1]])) {
+      if (is.null(as_percent))
+        as_percent = FALSE
+      if (is.na(min_level) & is.na(max_level)) {
+        min_level <- min(sapply(data, min, na.rm = TRUE))
+        max_level <-  max(sapply(data, max, na.rm = TRUE))
+      }
+    }
+    else{
+      stop("Unbekannte Daten-Format nur factor oder numeric ist erlaubt!!")
+    }
     
+    data <- sapply(data, as.numeric)
+    if (is.numeric(re_code))
+      data <- Umcodieren(data, re_code, min_level, max_level)
+    
+    index <-  apply(data, 1, fun, na.rm = na.rm)
+    
+    if (as_percent & is.null(center_levels)) {
+      index <- (index - min_level) / (max_level - min_level)
+    }
+    else if (as_percent) {
+      index <- (index - center)/(max_level - min_level)
+    }
+    else if (is.numeric(center_levels)) {
+      index <- (index - center) 
+    }
+    
+    
+    if (include.alpha) {
+      psych <- psych::alpha(data, check.keys = FALSE, na.rm = TRUE)
+      attr(index, "raw_alpha") <- render_f(as.numeric(psych$total$raw_alpha), 2)
+    }
+    round(index, digits)
   }
-  attr(dots, "raw_alpha") <- render_f(as.numeric(psych$total$raw_alpha), 2)
-  round(dots, digits)
-}
 
 
  
