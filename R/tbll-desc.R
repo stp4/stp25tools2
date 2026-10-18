@@ -54,6 +54,11 @@
 #' ## ----setup, include = FALSE---------------------------------------------------
 #' # library(stp25tools2)
 #'
+#' Tbll_desc(Sepal.Width ~ Species, data = iris, include.test = TRUE)
+#' Tbll_desc(Sepal.Width[aov] ~ Species, data = iris, include.test = TRUE)
+#' Tbll_desc(Sepal.Width ~ Species, data = iris, include.test = "aov", digits =1)
+#'
+#'
 #' #' ## ----include = FALSE----------------------------------------------------------
 #' set.seed(1)
 #' n <- 100
@@ -204,6 +209,10 @@ Tbll_desc <-
   ) {
   
     X <- prepare_data(...)
+    if (!is.null(digits)){
+      X$digits <- digits
+      names(X$digits) <- X$measure.vars
+    }
     
     if(is.null(X$condition.vars)){
       return(
@@ -318,6 +327,13 @@ make_tbll_desc <-
     
     if (is.character(include.test)) {
       include.test <- gsub("[^[:alpha:]]", "", tolower(include.test))
+      cattest <- get_opt("test_fun_cattest")
+      contest <- get_opt("test_fun_contest")
+      notest <-  get_opt("test_fun_notest")
+      cortest <- get_opt("test_fun_cortest")
+      disttest <- get_opt("test_fun_disttest")
+      ordtest <- get_opt("test_fun_ordtest")
+      
       which_test <-
         match.arg(include.test,
                   c(contest, cattest, notest, ordtest, disttest, cortest))
